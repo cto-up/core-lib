@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
-	utils "ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog/log"

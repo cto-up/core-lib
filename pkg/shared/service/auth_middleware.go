@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/shared/access"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/auth/kratos"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/shared/access"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth/kratos"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )

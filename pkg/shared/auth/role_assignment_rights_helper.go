@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

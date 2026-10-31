@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"ctoup.com/coreapp/api/health"
-	core "ctoup.com/coreapp/pkg/core/api"
-	config "ctoup.com/coreapp/pkg/core/config/api"
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	access "ctoup.com/coreapp/pkg/shared/service"
+	"github.com/cto-up/core-lib/api/health"
+	core "github.com/cto-up/core-lib/pkg/core/api"
+	config "github.com/cto-up/core-lib/pkg/core/config/api"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	access "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

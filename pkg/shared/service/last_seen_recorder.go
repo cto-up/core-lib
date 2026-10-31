@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 const (

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 )
 
 // ErrUserActiveInOtherTenants signals that the target user cannot be

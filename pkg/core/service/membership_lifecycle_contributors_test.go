@@ -8,8 +8,8 @@ import (
 	"errors"
 	"testing"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	sharedservice "ctoup.com/coreapp/pkg/shared/service"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	sharedservice "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

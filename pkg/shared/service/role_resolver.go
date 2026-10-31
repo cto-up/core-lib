@@ -7,8 +7,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/shared/access"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/access"
 )
 
 // membershipReader is the one query the resolver needs, so it can be tested

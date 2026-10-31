@@ -1,6 +1,6 @@
 package subentity
 
-import "ctoup.com/coreapp/api/openapi/core"
+import "github.com/cto-up/core-lib/api/openapi/core"
 
 type TenantProfile struct {
 	DisplayName string           `json:"displayName"`

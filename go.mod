@@ -1,4 +1,4 @@
-module ctoup.com/coreapp
+module github.com/cto-up/core-lib
 
 go 1.25.0
 

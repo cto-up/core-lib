@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. Glob-triggered rules in `.claude/rules/` load automatically when you touch matching files
 3. Docs and core's ADRs (core ADR 001…) live in platform-docs: `auth/` and `libs/core/` (see `docs/README.md`)
 4. If touching database, OpenAPI, or a frontend — those rules files enforce mandatory workflows
-5. The application is using ctoup.com/coreapp for user, tenant management. If improvement is required for ctoup.com/coreapp , source code is found in folder: ../core-be-lib
+5. The application is using github.com/cto-up/core-lib for user, tenant management. If improvement is required for github.com/cto-up/core-lib , source code is found in folder: ../core-lib
 6. Never modify vendor folder directly
 
 ## Build & Development Commands
@@ -100,4 +100,4 @@ RequestIDMiddleware → TenantMiddleware (subdomain-based) → AuthMiddleware (J
 
 ## Repository Layout Note
 
-For full-stack code generation, `core-be-lib` and `core-fe-lib` should be sibling directories — `make openapi` writes TypeScript clients to `../core-fe-lib/lib/openapi/`.
+For full-stack code generation, `core-lib` and `core-fe-lib` should be sibling directories — `make openapi` writes TypeScript clients to `../core-fe-lib/lib/openapi/`.

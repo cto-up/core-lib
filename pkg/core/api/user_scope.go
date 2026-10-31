@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"ctoup.com/coreapp/api/helpers"
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	access "ctoup.com/coreapp/pkg/shared/service"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/helpers"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	access "github.com/cto-up/core-lib/pkg/shared/service"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"ctoup.com/coreapp/api/openapi/core"
+	"github.com/cto-up/core-lib/api/openapi/core"
 )
 
 // An invitation that lives forever is a standing grant nobody remembers issuing.

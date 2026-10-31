@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 )
 
 // The two guards the /admin-api user handlers apply and their /superadmin-api

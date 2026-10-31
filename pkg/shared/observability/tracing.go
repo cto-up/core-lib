@@ -2,7 +2,7 @@
 // (roadmap 020, Tier 2).
 //
 // WHAT THIS BUYS OVER TIER 0/1. nginx says WHICH URL is slow. The RED metrics
-// in core-be-lib say WHICH ROUTE TEMPLATE and whether we were saturated. Both
+// in core-lib say WHICH ROUTE TEMPLATE and whether we were saturated. Both
 // are aggregates: they have already thrown the individual request away. A trace
 // keeps one request whole across every process it touched, which is the only
 // way an N+1 query is visible at all — in metrics such an endpoint is merely
@@ -24,7 +24,7 @@ package observability
 
 import (
 	"context"
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"net/http"
 	"strconv"
 	"strings"

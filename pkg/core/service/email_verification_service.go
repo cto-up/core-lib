@@ -3,17 +3,17 @@ package service
 import (
 	"crypto/rand"
 	"crypto/sha256"
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"encoding/base64"
 	"fmt"
 	"time"
 
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/emailservice"
-	"ctoup.com/coreapp/pkg/shared/util"
-	utils "ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/util"
+	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 )
 

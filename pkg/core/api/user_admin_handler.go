@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"ctoup.com/coreapp/api/helpers"
-	api "ctoup.com/coreapp/api/openapi/core"
-	core "ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/core/db"
-	auth "ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/event"
-	access "ctoup.com/coreapp/pkg/shared/service"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/helpers"
+	api "github.com/cto-up/core-lib/api/openapi/core"
+	core "github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	auth "github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/event"
+	access "github.com/cto-up/core-lib/pkg/shared/service"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 )
 

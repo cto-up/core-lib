@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 )
 
 // The From: address of every password reset, welcome mail, verification and
@@ -92,13 +92,13 @@ func TestFromEnvKeepsTheNamesDeploymentsAlreadyUse(t *testing.T) {
 	assert.Equal(t, "secret", c.SMTP.Password)
 }
 
-// The guard. core-be-lib is the library every other one mounts into, and it
+// The guard. core-lib is the library every other one mounts into, and it
 // read the environment in more places than any of its siblings while
 // tooling-lib and workflow-lib read it zero times.
 //
 //	37 reads across 12 packages  ->  2, both deliberate
 //
-// This covers pkg/ — the LIBRARY surface. cmd/ and internal/ are core-be-lib's
+// This covers pkg/ — the LIBRARY surface. cmd/ and internal/ are core-lib's
 // own application, where reading the environment is the host's job.
 func TestTheLibraryDoesNotReadTheEnvironment(t *testing.T) {
 	exempt := map[string]string{

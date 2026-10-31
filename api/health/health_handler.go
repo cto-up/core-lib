@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"ctoup.com/coreapp/internal/version"
-	"ctoup.com/coreapp/pkg/core/db"
+	"github.com/cto-up/core-lib/internal/version"
+	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/gin-gonic/gin"
 )
 

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	commontestutils "ctoup.com/coreapp/internal/testutils"
-	"ctoup.com/coreapp/pkg/core/db/testutils"
+	commontestutils "github.com/cto-up/core-lib/internal/testutils"
+	"github.com/cto-up/core-lib/pkg/core/db/testutils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

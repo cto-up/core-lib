@@ -12,7 +12,7 @@
 # skeells module migration on version 20260810120000):
 #
 #   new migrations : 16 digits = YYYYMMDDHHMMSS + 2-digit SOURCE ID
-#                    01 core-be-lib  02 cron-lib  03 outbox-lib  04 lcgo-lib
+#                    01 core-lib  02 cron-lib  03 outbox-lib  04 lcgo-lib
 #   consumer apps  : bare 14-digit YYYYMMDDHHMMSS
 #
 # A 16-digit version is ~100x larger than any 14-digit one, so a library version

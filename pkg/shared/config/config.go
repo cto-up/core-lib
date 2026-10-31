@@ -1,6 +1,6 @@
 // Package config is what the DEPLOYMENT decides, supplied by the host.
 //
-// core-be-lib is the foundation every other library mounts into, and it read
+// core-lib is the foundation every other library mounts into, and it read
 // os.Getenv in 37 places across 12 packages — more than any of its siblings,
 // while tooling-lib and workflow-lib read it zero times. The library with the
 // most consumers and the most security-relevant surface had the weakest

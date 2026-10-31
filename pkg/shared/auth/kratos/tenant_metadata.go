@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
-	util "ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	util "github.com/cto-up/core-lib/pkg/shared/util"
 	ory "github.com/ory/kratos-client-go"
 )
 

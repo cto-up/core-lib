@@ -35,7 +35,7 @@ Ensure your local environment has the following generators:
 
 ### 3. Repository Structure
 
-For full-stack synchronization, the backend (`core-be-lib`) and frontend (`core-fe-lib`) should be sibling directories to allow the OpenAPI generator to populate both libraries simultaneously.
+For full-stack synchronization, the backend (`core-lib`) and frontend (`core-fe-lib`) should be sibling directories to allow the OpenAPI generator to populate both libraries simultaneously.
 
 ```text
 .

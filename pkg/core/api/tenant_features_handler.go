@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"ctoup.com/coreapp/api/helpers"
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/repository/subentity"
+	"github.com/cto-up/core-lib/api/helpers"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

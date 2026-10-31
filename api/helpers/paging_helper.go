@@ -1,6 +1,6 @@
 package helpers
 
-import sqlservice "ctoup.com/coreapp/pkg/shared/sql"
+import sqlservice "github.com/cto-up/core-lib/pkg/shared/sql"
 
 type PagingRequest struct {
 	Page            *int32 `form:"page" binding:"required,min=1"`

@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"ctoup.com/coreapp/pkg/core/db/migration"
-	"ctoup.com/coreapp/pkg/core/db/testutils"
-	connectionRepository "ctoup.com/coreapp/pkg/shared/repository"
+	"github.com/cto-up/core-lib/pkg/core/db/migration"
+	"github.com/cto-up/core-lib/pkg/core/db/testutils"
+	connectionRepository "github.com/cto-up/core-lib/pkg/shared/repository"
 )
 
 const agentStoredNamesVersion int64 = 2026103007452801

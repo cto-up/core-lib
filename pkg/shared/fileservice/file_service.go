@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	appconfig "ctoup.com/coreapp/pkg/shared/config"
+	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage" // GCS client
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 
 	// AWS S3 client imports
 	"github.com/aws/aws-sdk-go-v2/aws"

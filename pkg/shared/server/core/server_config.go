@@ -4,22 +4,22 @@ import (
 	"context"
 	"sync"
 
-	"ctoup.com/coreapp/api/handlers"
-	"ctoup.com/coreapp/api/helpers"
-	core "ctoup.com/coreapp/api/openapi/core"
-	coreapi "ctoup.com/coreapp/pkg/core/api"
+	"github.com/cto-up/core-lib/api/handlers"
+	"github.com/cto-up/core-lib/api/helpers"
+	core "github.com/cto-up/core-lib/api/openapi/core"
+	coreapi "github.com/cto-up/core-lib/pkg/core/api"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/rs/zerolog/log"
 
 	// [DO NOT REMOVE COMMENT - Import]
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	_ "ctoup.com/coreapp/pkg/shared/auth/kratos"
-	"ctoup.com/coreapp/pkg/shared/observability"
-	"ctoup.com/coreapp/pkg/shared/service"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	_ "github.com/cto-up/core-lib/pkg/shared/auth/kratos"
+	"github.com/cto-up/core-lib/pkg/shared/observability"
+	"github.com/cto-up/core-lib/pkg/shared/service"
 
-	"ctoup.com/coreapp/pkg/shared/seedservice"
+	"github.com/cto-up/core-lib/pkg/shared/seedservice"
 
 	"github.com/go-playground/validator/v10"
 

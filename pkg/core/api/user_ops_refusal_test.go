@@ -8,8 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	core "ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/shared/auth"
+	core "github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 )
 
 // Thirteen user operations used to exist twice, and the copies drifted on the

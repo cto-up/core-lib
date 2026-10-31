@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"database/sql"
 	"fmt"
 	"time"

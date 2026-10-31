@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	ory "github.com/ory/kratos-client-go"
 )
 

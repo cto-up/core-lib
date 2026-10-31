@@ -1,17 +1,17 @@
 package core
 
 import (
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"ctoup.com/coreapp/api/helpers"
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/helpers"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	ory "github.com/ory/kratos-client-go"
 	"github.com/rs/zerolog/log"

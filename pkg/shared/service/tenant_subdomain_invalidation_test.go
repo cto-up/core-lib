@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/require"
 
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/core/db/testutils"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/core/db/testutils"
 )
 
 func mapped(subdomain string) (string, bool) {

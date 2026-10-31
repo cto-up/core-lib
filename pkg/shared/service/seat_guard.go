@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"ctoup.com/coreapp/api/openapi/core"
+	"github.com/cto-up/core-lib/api/openapi/core"
 )
 
 // SeatGuard is consulted before a user is added to a tenant. Returning an error

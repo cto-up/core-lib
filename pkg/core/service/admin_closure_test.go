@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/core/db/testutils"
-	"ctoup.com/coreapp/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/core/db/testutils"
+	"github.com/cto-up/core-lib/pkg/shared/emailservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

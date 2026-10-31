@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/gin-gonic/gin"
 	ory "github.com/ory/kratos-client-go"
 )

@@ -1,7 +1,7 @@
 package db
 
 import (
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // The zero value is the absent value. That is the whole contract, and it is the

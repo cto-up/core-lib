@@ -24,27 +24,27 @@ sql:
             go_type: "string"
           - column: core_tenants.features
             go_type:
-              import: ctoup.com/coreapp/pkg/shared/repository/subentity
+              import: github.com/cto-up/core-lib/pkg/shared/repository/subentity
               package: subentity
               type: TenantFeatures
           - column: core_tenants.feature_licenses
             go_type:
-              import: ctoup.com/coreapp/pkg/shared/repository/subentity
+              import: github.com/cto-up/core-lib/pkg/shared/repository/subentity
               package: subentity
               type: TenantFeatureLicenses
           - column: core_tenants.profile
             go_type:
-              import: ctoup.com/coreapp/pkg/shared/repository/subentity
+              import: github.com/cto-up/core-lib/pkg/shared/repository/subentity
               package: subentity
               type: TenantProfile
           - column: core_users.profile
             go_type:
-              import: ctoup.com/coreapp/pkg/shared/repository/subentity
+              import: github.com/cto-up/core-lib/pkg/shared/repository/subentity
               package: subentity
               type: UserProfile
           - column: core_user_tenant_memberships.feature_licenses
             go_type:
-              import: ctoup.com/coreapp/pkg/shared/repository/subentity
+              import: github.com/cto-up/core-lib/pkg/shared/repository/subentity
               package: subentity
               type: TenantFeatureLicenses
         rename:

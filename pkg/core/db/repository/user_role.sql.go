@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	subentity "ctoup.com/coreapp/pkg/shared/repository/subentity"
+	subentity "github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 

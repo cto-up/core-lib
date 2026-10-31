@@ -3,11 +3,11 @@ package service
 import (
 	"testing"
 
-	commontestutils "ctoup.com/coreapp/internal/testutils"
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	commontestutils "github.com/cto-up/core-lib/internal/testutils"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 
-	"ctoup.com/coreapp/pkg/core/db/testutils"
+	"github.com/cto-up/core-lib/pkg/core/db/testutils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

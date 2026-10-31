@@ -2,16 +2,16 @@ package kratos
 
 import (
 	"context"
-	appconfig "ctoup.com/coreapp/pkg/shared/config"
+	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"fmt"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	ory "github.com/ory/kratos-client-go"

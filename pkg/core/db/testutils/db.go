@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	coreDB "ctoup.com/coreapp/pkg/core/db"
-	connectionRepository "ctoup.com/coreapp/pkg/shared/repository"
+	coreDB "github.com/cto-up/core-lib/pkg/core/db"
+	connectionRepository "github.com/cto-up/core-lib/pkg/shared/repository"
 	"github.com/pressly/goose/v3"
 	"github.com/rs/zerolog/log"
 

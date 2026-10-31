@@ -44,7 +44,7 @@ make openapi
 | Backend Go interface| `api/openapi/core/core-service.go`    |
 | TypeScript client   | `../core-fe-lib/lib/openapi/core/`    |
 
-> `core-be-lib` and `core-fe-lib` must be sibling directories for frontend generation to work.
+> `core-lib` and `core-fe-lib` must be sibling directories for frontend generation to work.
 
 ## Handler implementation
 

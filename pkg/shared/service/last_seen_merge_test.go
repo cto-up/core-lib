@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 )
 
 func tp(t time.Time) *time.Time { return &t }

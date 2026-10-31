@@ -5,7 +5,7 @@ package service
 import (
 	"testing"
 
-	"ctoup.com/coreapp/api/openapi/core"
+	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/stretchr/testify/assert"
 )
 

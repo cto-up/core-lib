@@ -2,8 +2,7 @@
 // admin?" flag and the gin middleware that stamps it on the request
 // context.
 //
-// Why this exists in this repo rather than coreapp: core-be-lib is
-// vendored and provides only the gin-context role getters
+// Why this is its own package: auth provides only the gin-context role getters
 // (auth.IsAdmin / IsCustomerAdmin / IsSuperAdmin). Service-layer code
 // that runs without a gin.Context — eino tools, schedulers,
 // background jobs — needs the same answer through context.Context's
@@ -25,7 +24,7 @@ package access
 import (
 	"context"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/gin-gonic/gin"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // EraseScope says which of the two erasures is being performed. They are not the

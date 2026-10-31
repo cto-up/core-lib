@@ -10,8 +10,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // The sign-up magic link must land the new user back where they started (a

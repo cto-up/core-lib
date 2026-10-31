@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,13 +11,13 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/emailservice"
-	sharedservice "ctoup.com/coreapp/pkg/shared/service"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	sharedservice "github.com/cto-up/core-lib/pkg/shared/service"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // UserTenantMembershipService is the self-service side of membership: invite a

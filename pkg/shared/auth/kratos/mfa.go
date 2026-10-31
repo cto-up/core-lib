@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/gin-gonic/gin"
 )
 

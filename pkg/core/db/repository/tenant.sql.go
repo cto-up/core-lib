@@ -8,7 +8,7 @@ package repository
 import (
 	"context"
 
-	subentity "ctoup.com/coreapp/pkg/shared/repository/subentity"
+	subentity "github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )

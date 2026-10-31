@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"ctoup.com/coreapp/pkg/shared/server/core"
+	"github.com/cto-up/core-lib/pkg/shared/server/core"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v5/stdlib"

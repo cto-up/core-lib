@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/auth/kratos"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth/kratos"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // KratosTenantService handles tenant-user associations for Kratos

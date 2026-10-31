@@ -1,4 +1,4 @@
-# core-be-lib documentation
+# core-lib documentation
 
 The documentation for this library lives in the shared `platform-docs`
 repository, which every product mounts at `docs/platform-docs/`:

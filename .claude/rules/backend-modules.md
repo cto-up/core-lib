@@ -65,8 +65,8 @@ import (
     "github.com/gin-gonic/gin"
 
     // 3. internal (alphabetical)
-    "ctoup.com/coreapp/api/helpers"
-    auth "ctoup.com/coreapp/pkg/shared/auth"
+    "github.com/cto-up/core-lib/api/helpers"
+    auth "github.com/cto-up/core-lib/pkg/shared/auth"
 )
 ```
 
@@ -100,7 +100,7 @@ if !exists {
 - Middleware pipeline: RequestIDMiddleware → TenantMiddleware → AuthMiddleware
 - All wired in `internal/server/http/restserver.go` and `pkg/shared/server/core/`
 - Tenant ID via `auth.AUTH_TENANT_ID_KEY` context key
-- Never implement auth logic directly — use helpers from `ctoup.com/coreapp/pkg/shared/auth`
+- Never implement auth logic directly — use helpers from `github.com/cto-up/core-lib/pkg/shared/auth`
 
 ## Role checking
 
@@ -113,10 +113,10 @@ if !exists {
 | `ADMIN`          | Tenant | Medium    |
 | `USER`           | Tenant | Standard  |
 
-### In handlers — use `auth.Is*()` from `ctoup.com/coreapp/pkg/shared/auth`
+### In handlers — use `auth.Is*()` from `github.com/cto-up/core-lib/pkg/shared/auth`
 
 ```go
-import auth "ctoup.com/coreapp/pkg/shared/auth"
+import auth "github.com/cto-up/core-lib/pkg/shared/auth"
 
 // Single role check
 if !auth.IsAdmin(c) {

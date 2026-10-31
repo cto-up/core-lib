@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 )
 
 type capturingTenantPublisher struct {

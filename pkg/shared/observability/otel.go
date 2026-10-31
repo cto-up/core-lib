@@ -99,7 +99,7 @@ func ExportSpans(ctx context.Context, target OTLPTarget, res []attribute.KeyValu
 			EndTime:              s.End,
 			Attributes:           s.Attributes,
 			Resource:             r,
-			InstrumentationScope: instrumentation.Scope{Name: "ctoup.com/coreapp/observability"},
+			InstrumentationScope: instrumentation.Scope{Name: "github.com/cto-up/core-lib/observability"},
 		}
 		if s.ParentID.IsValid() {
 			stub.Parent = trace.NewSpanContext(trace.SpanContextConfig{

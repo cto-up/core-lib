@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"ctoup.com/coreapp/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/rs/zerolog/log"
 )
 

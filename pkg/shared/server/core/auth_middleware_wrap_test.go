@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"ctoup.com/coreapp/pkg/shared/observability"
+	"github.com/cto-up/core-lib/pkg/shared/observability"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

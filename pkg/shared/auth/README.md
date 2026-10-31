@@ -15,13 +15,13 @@ A flexible, provider-agnostic authentication layer that supports multiple authen
 ### Installation
 
 ```bash
-go get ctoup.com/coreapp/pkg/shared/auth
+go get github.com/cto-up/core-lib/pkg/shared/auth
 ```
 
 ### Basic Usage
 
 ```go
-import "ctoup.com/coreapp/pkg/shared/auth"
+import "github.com/cto-up/core-lib/pkg/shared/auth"
 
 provider, err := auth.InitializeAuthProvider(ctx, multitenantService)
 if err != nil {

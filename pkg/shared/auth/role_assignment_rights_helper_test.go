@@ -4,7 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"ctoup.com/coreapp/api/openapi/core"
+	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )

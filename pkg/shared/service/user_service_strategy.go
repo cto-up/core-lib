@@ -1,8 +1,8 @@
 package service
 
 import (
-	"ctoup.com/coreapp/pkg/core/db"
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/core/db"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 )
 
 // UserServiceStrategyFactory creates the appropriate strategy based on provider

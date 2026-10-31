@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )

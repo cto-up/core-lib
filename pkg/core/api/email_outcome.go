@@ -1,8 +1,8 @@
 package core
 
 import (
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 )
 
 // emailOutcome rides beside the result of a write that also sends a mail. The

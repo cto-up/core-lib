@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"ctoup.com/coreapp/api/openapi/core"
-	"ctoup.com/coreapp/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/api/openapi/core"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
 )
 
 type FullUser struct {

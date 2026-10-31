@@ -6,8 +6,8 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/jackc/pgx/v5"
 )
 

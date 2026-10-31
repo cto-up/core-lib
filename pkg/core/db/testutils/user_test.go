@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"ctoup.com/coreapp/internal/testutils"
-	"ctoup.com/coreapp/pkg/core/db/repository"
-	"ctoup.com/coreapp/pkg/shared/repository/subentity"
+	"github.com/cto-up/core-lib/internal/testutils"
+	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/require"
 )

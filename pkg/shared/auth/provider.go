@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 )
 

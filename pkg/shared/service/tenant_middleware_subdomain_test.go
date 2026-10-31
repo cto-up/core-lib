@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	utils "ctoup.com/coreapp/pkg/shared/util"
+	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )

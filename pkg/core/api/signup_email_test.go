@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/stretchr/testify/assert"
 )
 

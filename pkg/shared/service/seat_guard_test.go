@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"ctoup.com/coreapp/api/openapi/core"
+	"github.com/cto-up/core-lib/api/openapi/core"
 )
 
 // An unconfigured deployment must never start refusing memberships — the guard

@@ -3,7 +3,7 @@ package emailservice
 import (
 	"bytes"
 	"crypto/tls"
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"errors"
 	"fmt"
 	"html/template"
@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	utils "ctoup.com/coreapp/pkg/shared/util"
+	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 )
 

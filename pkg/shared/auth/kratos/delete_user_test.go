@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
 )
 
 // A core_users row can outlive its identity — rows created under the earlier

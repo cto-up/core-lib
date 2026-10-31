@@ -21,7 +21,7 @@ import (
 // an Apply entry point so the host's subscriber is two lines that know nothing
 // about the cache.
 //
-// core-be-lib has no NATS dependency and does not gain one here. It says what
+// core-lib has no NATS dependency and does not gain one here. It says what
 // needs doing; the host supplies the transport it already runs.
 //
 // Package-level rather than a field on MultitenantService, deliberately: the

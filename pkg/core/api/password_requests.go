@@ -1,16 +1,16 @@
 package core
 
 import (
-	"ctoup.com/coreapp/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"fmt"
 	"strings"
 
-	"ctoup.com/coreapp/pkg/shared/auth"
-	"ctoup.com/coreapp/pkg/shared/emailservice"
-	"ctoup.com/coreapp/pkg/shared/util"
+	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 
-	utils "ctoup.com/coreapp/pkg/shared/util"
+	utils "github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // buildTenantURL constructs a URL for a specific tenant subdomain with proper port handling

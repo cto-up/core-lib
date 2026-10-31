@@ -10,9 +10,9 @@ import (
 
 	standardlog "log"
 
-	rest "ctoup.com/coreapp/internal/server/http"
+	rest "github.com/cto-up/core-lib/internal/server/http"
 
-	connectionRepository "ctoup.com/coreapp/pkg/shared/repository"
+	connectionRepository "github.com/cto-up/core-lib/pkg/shared/repository"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
