@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,8 +31,7 @@ func render(templateFile string, funcs template.FuncMap, data any) (string, erro
 }
 
 // RenderDomainTemplate renders the template GetTemplate finds for the request's
-// domain. The template can call {{contactEmail}}: contact@<request domain>, the
-// one mailbox a deployment answers on, so one template serves every domain.
+// domain, through RenderTemplateForDomain.
 func RenderDomainTemplate(ctx *gin.Context, templateName string, data any) (string, error) {
 	path, err := GetTemplate(ctx, templateName)
 	if err != nil {
@@ -41,9 +41,21 @@ func RenderDomainTemplate(ctx *gin.Context, templateName string, data any) (stri
 	if err != nil {
 		return "", fmt.Errorf("failed to get domain info: %w", err)
 	}
-	contact := "contact@" + domainInfo.Domain
+	return RenderTemplateForDomain(path, domainInfo.Domain, data)
+}
+
+// RenderTemplateForDomain renders a template for mail sent on behalf of an app
+// served at domain (e.g. "taskfactory.eu"; a port is ignored). The template can
+// call {{contactEmail}}: contact@<domain>, the one mailbox a deployment answers
+// on, so one template serves every domain. Use it where there is no request,
+// such as a cron job.
+func RenderTemplateForDomain(templateFile, domain string, data any) (string, error) {
+	if host, _, err := net.SplitHostPort(domain); err == nil {
+		domain = host
+	}
+	contact := "contact@" + domain
 	funcs := template.FuncMap{"contactEmail": func() string { return contact }}
-	return render(path, funcs, data)
+	return render(templateFile, funcs, data)
 }
 
 // GetTemplate finds a template file using hierarchical lookup based on domain and subdomain

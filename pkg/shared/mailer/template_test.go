@@ -3,6 +3,7 @@ package mailer_test
 import (
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/cto-up/core-lib/pkg/shared/mailer"
@@ -104,5 +105,18 @@ func TestRenderDomainTemplateContactEmail(t *testing.T) {
 		body, err := mailer.RenderDomainTemplate(c, "footer.html", nil)
 		assert.NoError(t, err, origin)
 		assert.Equal(t, `<a href="mailto:`+want+`">`+want+`</a>`, body, origin)
+	}
+}
+
+func TestRenderTemplateForDomain(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "footer.html")
+	assert.NoError(t, os.WriteFile(file, []byte(`{{contactEmail}}`), 0o600))
+	for domain, want := range map[string]string{
+		"ourechos.com":   "contact@ourechos.com",
+		"localhost:3000": "contact@localhost",
+	} {
+		body, err := mailer.RenderTemplateForDomain(file, domain, nil)
+		assert.NoError(t, err, domain)
+		assert.Equal(t, want, body, domain)
 	}
 }
