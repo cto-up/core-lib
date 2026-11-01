@@ -37,6 +37,20 @@ const (
 	CheckDetailsStatusWarn CheckDetailsStatus = "warn"
 )
 
+// Defines values for EmailDeliveryRecipientRole.
+const (
+	EmailDeliveryRecipientRoleBcc EmailDeliveryRecipientRole = "bcc"
+	EmailDeliveryRecipientRoleCc  EmailDeliveryRecipientRole = "cc"
+	EmailDeliveryRecipientRoleTo  EmailDeliveryRecipientRole = "to"
+)
+
+// Defines values for EmailDeliveryStatus.
+const (
+	EmailDeliveryStatusAccepted EmailDeliveryStatus = "accepted"
+	EmailDeliveryStatusFailed   EmailDeliveryStatus = "failed"
+	EmailDeliveryStatusRejected EmailDeliveryStatus = "rejected"
+)
+
 // Defines values for HealthResponseChecksStatus.
 const (
 	HealthResponseChecksStatusFail HealthResponseChecksStatus = "fail"
@@ -323,6 +337,48 @@ type Config struct {
 	Name  string             `json:"name"`
 	Value *string            `json:"value,omitempty"`
 }
+
+// EmailDelivery defines model for EmailDelivery.
+type EmailDelivery struct {
+	// Account "system" for the platform relay, else the mail connection id
+	Account   string    `json:"account"`
+	CreatedAt time.Time `json:"createdAt"`
+
+	// ErrorClass compose | dial | tls | auth | timeout | connection | sender_rejected | recipient_rejected | message_rejected
+	ErrorClass *string            `json:"errorClass"`
+	Id         openapi_types.UUID `json:"id"`
+
+	// Kind what the mail was, e.g. "core.password_reset"
+	Kind      string  `json:"kind"`
+	MessageId *string `json:"messageId"`
+	OriginId  *string `json:"originId"`
+
+	// OriginType workflow_run | agent_run
+	OriginType *string `json:"originType"`
+
+	// RecipientMasked e.g. "j***@acme.com"
+	RecipientMasked string                     `json:"recipientMasked"`
+	RecipientRole   EmailDeliveryRecipientRole `json:"recipientRole"`
+	SmtpCode        *int32                     `json:"smtpCode"`
+
+	// Status accepted = the relay took it (not "delivered"); rejected = the relay refused it; failed = it never reached a relay
+	Status EmailDeliveryStatus `json:"status"`
+}
+
+// EmailDeliveryRecipientRole defines model for EmailDelivery.RecipientRole.
+type EmailDeliveryRecipientRole string
+
+// EmailDeliveryCount defines model for EmailDeliveryCount.
+type EmailDeliveryCount struct {
+	Count int64  `json:"count"`
+	Kind  string `json:"kind"`
+
+	// Status accepted = the relay took it (not "delivered"); rejected = the relay refused it; failed = it never reached a relay
+	Status EmailDeliveryStatus `json:"status"`
+}
+
+// EmailDeliveryStatus accepted = the relay took it (not "delivered"); rejected = the relay refused it; failed = it never reached a relay
+type EmailDeliveryStatus string
 
 // ErrorSchema defines model for ErrorSchema.
 type ErrorSchema struct {

@@ -206,6 +206,12 @@ paths:
   /admin-api/v1/pending-deletions:
     $ref: "./parts/admin/pending-deletions-path.yaml"
 
+  # Email delivery log (ADR 090): tenant ADMIN rows, SUPER_ADMIN counts
+  /admin-api/v1/email-deliveries:
+    $ref: "./parts/admin/email-deliveries-path.yaml"
+  /superadmin-api/v1/email-deliveries/summary:
+    $ref: "./parts/admin/super-admin-email-deliveries-summary-path.yaml"
+
   # A member's data-protection rights, exercised by an admin on their behalf
   # (ADMIN & SUPER_ADMIN; the super-admin twins name the tenant)
   /admin-api/v1/users/{userid}/export:

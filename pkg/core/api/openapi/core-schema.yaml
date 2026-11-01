@@ -642,6 +642,87 @@ components:
         accessedAt:
           type: string
           format: date-time
+    EmailDeliveryStatus:
+      type: string
+      description: accepted = the relay took it (not "delivered"); rejected = the relay refused it; failed = it never reached a relay
+      enum:
+        - accepted
+        - rejected
+        - failed
+      x-enum-varnames:
+        - EmailDeliveryStatusAccepted
+        - EmailDeliveryStatusRejected
+        - EmailDeliveryStatusFailed
+    EmailDelivery:
+      type: object
+      required:
+        - id
+        - createdAt
+        - kind
+        - account
+        - recipientMasked
+        - recipientRole
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        kind:
+          type: string
+          description: what the mail was, e.g. "core.password_reset"
+        originType:
+          type: string
+          nullable: true
+          description: workflow_run | agent_run
+        originId:
+          type: string
+          nullable: true
+        account:
+          type: string
+          description: '"system" for the platform relay, else the mail connection id'
+        recipientMasked:
+          type: string
+          description: e.g. "j***@acme.com"
+        recipientRole:
+          type: string
+          enum:
+            - to
+            - cc
+            - bcc
+          x-enum-varnames:
+            - EmailDeliveryRecipientRoleTo
+            - EmailDeliveryRecipientRoleCc
+            - EmailDeliveryRecipientRoleBcc
+        status:
+          $ref: "#/components/schemas/EmailDeliveryStatus"
+        smtpCode:
+          type: integer
+          format: int32
+          nullable: true
+        errorClass:
+          type: string
+          nullable: true
+          description: compose | dial | tls | auth | timeout | connection | sender_rejected | recipient_rejected | message_rejected
+        messageId:
+          type: string
+          nullable: true
+    EmailDeliveryCount:
+      type: object
+      required:
+        - kind
+        - status
+        - count
+      properties:
+        kind:
+          type: string
+        status:
+          $ref: "#/components/schemas/EmailDeliveryStatus"
+        count:
+          type: integer
+          format: int64
     PendingDeletion:
       type: object
       required:

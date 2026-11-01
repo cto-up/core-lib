@@ -57,6 +57,74 @@ func (q *Queries) InsertEmailDelivery(ctx context.Context, arg InsertEmailDelive
 	return err
 }
 
+const listEmailDeliveries = `-- name: ListEmailDeliveries :many
+SELECT id, created_at, tenant_id, kind, origin_type, origin_id, account, recipient_hmac, recipient_masked, recipient_role, status, smtp_code, error_class, message_id FROM core_email_deliveries
+WHERE tenant_id = $1
+  AND ($2::text IS NULL OR status = $2::text)
+  AND ($3::text IS NULL OR kind = $3::text)
+  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+  AND ($6::bytea IS NULL OR recipient_hmac = $6::bytea)
+ORDER BY created_at DESC, id
+LIMIT $8 OFFSET $7
+`
+
+type ListEmailDeliveriesParams struct {
+	TenantID      pgtype.Text        `json:"tenant_id"`
+	Status        pgtype.Text        `json:"status"`
+	Kind          pgtype.Text        `json:"kind"`
+	SentFrom      pgtype.Timestamptz `json:"sent_from"`
+	SentTo        pgtype.Timestamptz `json:"sent_to"`
+	RecipientHmac []byte             `json:"recipient_hmac"`
+	RowOffset     int32              `json:"row_offset"`
+	RowLimit      int32              `json:"row_limit"`
+}
+
+// One tenant's rows, newest first. A NULL filter matches everything.
+func (q *Queries) ListEmailDeliveries(ctx context.Context, arg ListEmailDeliveriesParams) ([]CoreEmailDelivery, error) {
+	rows, err := q.db.Query(ctx, listEmailDeliveries,
+		arg.TenantID,
+		arg.Status,
+		arg.Kind,
+		arg.SentFrom,
+		arg.SentTo,
+		arg.RecipientHmac,
+		arg.RowOffset,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CoreEmailDelivery{}
+	for rows.Next() {
+		var i CoreEmailDelivery
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.TenantID,
+			&i.Kind,
+			&i.OriginType,
+			&i.OriginID,
+			&i.Account,
+			&i.RecipientHmac,
+			&i.RecipientMasked,
+			&i.RecipientRole,
+			&i.Status,
+			&i.SmtpCode,
+			&i.ErrorClass,
+			&i.MessageID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const purgeEmailDeliveriesBefore = `-- name: PurgeEmailDeliveriesBefore :execrows
 DELETE FROM core_email_deliveries
 WHERE created_at < $1
@@ -68,4 +136,44 @@ func (q *Queries) PurgeEmailDeliveriesBefore(ctx context.Context, cutoff time.Ti
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const summarizeEmailDeliveries = `-- name: SummarizeEmailDeliveries :many
+SELECT kind, status, count(*)::bigint AS count
+FROM core_email_deliveries
+WHERE created_at >= $1 AND created_at < $2
+GROUP BY kind, status
+ORDER BY kind, status
+`
+
+type SummarizeEmailDeliveriesParams struct {
+	SentFrom time.Time `json:"sent_from"`
+	SentTo   time.Time `json:"sent_to"`
+}
+
+type SummarizeEmailDeliveriesRow struct {
+	Kind   string `json:"kind"`
+	Status string `json:"status"`
+	Count  int64  `json:"count"`
+}
+
+// Every tenant, counts only.
+func (q *Queries) SummarizeEmailDeliveries(ctx context.Context, arg SummarizeEmailDeliveriesParams) ([]SummarizeEmailDeliveriesRow, error) {
+	rows, err := q.db.Query(ctx, summarizeEmailDeliveries, arg.SentFrom, arg.SentTo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SummarizeEmailDeliveriesRow{}
+	for rows.Next() {
+		var i SummarizeEmailDeliveriesRow
+		if err := rows.Scan(&i.Kind, &i.Status, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

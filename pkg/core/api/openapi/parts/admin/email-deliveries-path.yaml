@@ -1,0 +1,54 @@
+get:
+  description: >
+    Lists what the host tenant's email sends did, one row per recipient,
+    newest first (ADR 090 §5). Addresses are masked; an exact address can be
+    searched but never listed. Tenant administrators only.
+  operationId: listEmailDeliveries
+  parameters:
+    - name: status
+      in: query
+      schema:
+        $ref: "../../core-schema.yaml#/components/schemas/EmailDeliveryStatus"
+    - name: kind
+      in: query
+      description: only sends of this kind, e.g. "agent.send_email"
+      schema:
+        type: string
+    - name: from
+      in: query
+      description: sent at or after
+      schema:
+        type: string
+        format: date-time
+    - name: to
+      in: query
+      description: sent before
+      schema:
+        type: string
+        format: date-time
+    - name: address
+      in: query
+      description: only sends to exactly this address (matched by its keyed hash)
+      schema:
+        type: string
+    - name: page
+      in: query
+      description: page number
+      schema:
+        type: integer
+        format: int32
+    - name: pageSize
+      in: query
+      description: maximum number of results to return (at most 100)
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: email deliveries, newest first
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../core-schema.yaml#/components/schemas/EmailDelivery"

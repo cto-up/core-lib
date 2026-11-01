@@ -26,6 +26,7 @@ type Handlers struct {
 	*core.MembershipLifecycleHandler
 	*core.PersonalDataAccessHandler
 	*core.PendingDeletionsHandler
+	*core.EmailDeliveryHandler
 }
 
 func CreateCoreHandlers(connPool *pgxpool.Pool, authClientPool auth.AuthProvider, multiTenantService *access.MultitenantService, clientAppService *access.ClientApplicationService) Handlers {
@@ -48,6 +49,7 @@ func CreateCoreHandlers(connPool *pgxpool.Pool, authClientPool auth.AuthProvider
 		MembershipLifecycleHandler: core.NewMembershipLifecycleHandler(store, authClientPool),
 		PersonalDataAccessHandler:  core.NewPersonalDataAccessHandler(store),
 		PendingDeletionsHandler:    core.NewPendingDeletionsHandler(store),
+		EmailDeliveryHandler:       core.NewEmailDeliveryHandler(store),
 	}
 	return handlers
 }

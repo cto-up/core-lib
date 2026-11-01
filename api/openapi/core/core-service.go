@@ -159,6 +159,29 @@ type GetAPITokenAuditLogsParams struct {
 	PageSize *int32 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
 }
 
+// ListEmailDeliveriesParams defines parameters for ListEmailDeliveries.
+type ListEmailDeliveriesParams struct {
+	Status *EmailDeliveryStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// Kind only sends of this kind, e.g. "agent.send_email"
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// From sent at or after
+	From *time.Time `form:"from,omitempty" json:"from,omitempty"`
+
+	// To sent before
+	To *time.Time `form:"to,omitempty" json:"to,omitempty"`
+
+	// Address only sends to exactly this address (matched by its keyed hash)
+	Address *string `form:"address,omitempty" json:"address,omitempty"`
+
+	// Page page number
+	Page *int32 `form:"page,omitempty" json:"page,omitempty"`
+
+	// PageSize maximum number of results to return (at most 100)
+	PageSize *int32 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+}
+
 // ListPendingDeletionsParams defines parameters for ListPendingDeletions.
 type ListPendingDeletionsParams struct {
 	// Page page number
@@ -481,6 +504,15 @@ type UpdateGlobalConfigJSONBody struct {
 	Value *string            `json:"value,omitempty"`
 }
 
+// SummarizeEmailDeliveriesParams defines parameters for SummarizeEmailDeliveries.
+type SummarizeEmailDeliveriesParams struct {
+	// From sent at or after (default 7 days ago)
+	From *time.Time `form:"from,omitempty" json:"from,omitempty"`
+
+	// To sent before (default now)
+	To *time.Time `form:"to,omitempty" json:"to,omitempty"`
+}
+
 // ListTenantsParams defines parameters for ListTenants.
 type ListTenantsParams struct {
 	// Page page number
@@ -723,6 +755,9 @@ type ServerInterface interface {
 	// (PATCH /admin-api/v1/client-applications/{id}/tokens/{tokenId}/revoke)
 	RevokeAPIToken(c *gin.Context, id openapi_types.UUID, tokenId openapi_types.UUID)
 
+	// (GET /admin-api/v1/email-deliveries)
+	ListEmailDeliveries(c *gin.Context, params ListEmailDeliveriesParams)
+
 	// (GET /admin-api/v1/pending-deletions)
 	ListPendingDeletions(c *gin.Context, params ListPendingDeletionsParams)
 
@@ -956,6 +991,9 @@ type ServerInterface interface {
 
 	// (PUT /superadmin-api/v1/configs/global-configs/{id})
 	UpdateGlobalConfig(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/email-deliveries/summary)
+	SummarizeEmailDeliveries(c *gin.Context, params SummarizeEmailDeliveriesParams)
 
 	// (GET /superadmin-api/v1/tenant/{tenantid}/feature-licenses)
 	GetTenantFeatureLicenses(c *gin.Context, tenantid openapi_types.UUID)
@@ -1471,6 +1509,80 @@ func (siw *ServerInterfaceWrapper) RevokeAPIToken(c *gin.Context) {
 	}
 
 	siw.Handler.RevokeAPIToken(c, id, tokenId)
+}
+
+// ListEmailDeliveries operation middleware
+func (siw *ServerInterfaceWrapper) ListEmailDeliveries(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEmailDeliveriesParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "status", c.Request.URL.Query(), &params.Status)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter status: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "kind", c.Request.URL.Query(), &params.Kind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter kind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "address" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "address", c.Request.URL.Query(), &params.Address)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter address: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListEmailDeliveries(c, params)
 }
 
 // ListPendingDeletions operation middleware
@@ -3373,6 +3485,40 @@ func (siw *ServerInterfaceWrapper) UpdateGlobalConfig(c *gin.Context) {
 	siw.Handler.UpdateGlobalConfig(c, id)
 }
 
+// SummarizeEmailDeliveries operation middleware
+func (siw *ServerInterfaceWrapper) SummarizeEmailDeliveries(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SummarizeEmailDeliveriesParams
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SummarizeEmailDeliveries(c, params)
+}
+
 // GetTenantFeatureLicenses operation middleware
 func (siw *ServerInterfaceWrapper) GetTenantFeatureLicenses(c *gin.Context) {
 
@@ -4313,6 +4459,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId", wrapper.GetAPITokenById)
 	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId/audit", wrapper.GetAPITokenAuditLogs)
 	router.PATCH(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId/revoke", wrapper.RevokeAPIToken)
+	router.GET(options.BaseURL+"/admin-api/v1/email-deliveries", wrapper.ListEmailDeliveries)
 	router.GET(options.BaseURL+"/admin-api/v1/pending-deletions", wrapper.ListPendingDeletions)
 	router.GET(options.BaseURL+"/admin-api/v1/personal-data-access", wrapper.ListPersonalDataAccess)
 	router.POST(options.BaseURL+"/admin-api/v1/users/:userid/deletion", wrapper.ScheduleMemberAccountDeletion)
@@ -4391,6 +4538,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.DELETE(options.BaseURL+"/superadmin-api/v1/configs/global-configs/:id", wrapper.DeleteGlobalConfig)
 	router.GET(options.BaseURL+"/superadmin-api/v1/configs/global-configs/:id", wrapper.GetGlobalConfigByID)
 	router.PUT(options.BaseURL+"/superadmin-api/v1/configs/global-configs/:id", wrapper.UpdateGlobalConfig)
+	router.GET(options.BaseURL+"/superadmin-api/v1/email-deliveries/summary", wrapper.SummarizeEmailDeliveries)
 	router.GET(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/feature-licenses", wrapper.GetTenantFeatureLicenses)
 	router.PUT(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/feature-licenses", wrapper.UpdateTenantFeatureLicenses)
 	router.GET(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/features", wrapper.GetTenantFeatures)

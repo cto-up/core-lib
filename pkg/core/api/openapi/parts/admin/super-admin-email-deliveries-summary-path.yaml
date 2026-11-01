@@ -1,0 +1,27 @@
+get:
+  description: >
+    Counts every tenant's email sends by kind and status over a window (ADR 090
+    §5). No rows, no addresses, no tenant ids. SUPER_ADMIN only.
+  operationId: summarizeEmailDeliveries
+  parameters:
+    - name: from
+      in: query
+      description: sent at or after (default 7 days ago)
+      schema:
+        type: string
+        format: date-time
+    - name: to
+      in: query
+      description: sent before (default now)
+      schema:
+        type: string
+        format: date-time
+  responses:
+    "200":
+      description: counts by kind and status
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../core-schema.yaml#/components/schemas/EmailDeliveryCount"
