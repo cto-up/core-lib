@@ -91,7 +91,7 @@ check-fe-checkout:
 # Library migrations are 16 digits: YYYYMMDDHHMMSS + source id 01. Consumers
 # flatten every library's migrations and their own modules into ONE goose
 # namespace, so a bare timestamp can collide with an app migration — which is
-# exactly how coreapp v0.2.29 collided with skeells on 20260810120000. The
+# exactly how core-lib v0.2.29 collided with skeells on 20260810120000. The
 # 2-digit suffix makes a cross-repo collision arithmetically impossible.
 new-migration: ## Create a goose migration (NAME=<snake_case>)
 	@if [ -z "$(NAME)" ]; then \

@@ -241,7 +241,7 @@ func HTTPMetricsMiddleware() gin.HandlerFunc {
 //	}
 //
 // A gin middleware continues the chain by calling c.Next() from INSIDE itself.
-// The coreapp auth middleware does exactly that (three call sites). So `next(c)`
+// The core-lib auth middleware does exactly that (three call sites). So `next(c)`
 // above does not return when auth finishes — it returns when the entire
 // remaining chain, handler and database work included, has finished. The metric
 // therefore measured ~the whole request and the derived "Kratos share of request
@@ -286,8 +286,8 @@ func isStream(c *gin.Context) bool {
 }
 
 const (
-	authStartKey    = "coreapp_auth_timer_start"
-	authRecordedKey = "coreapp_auth_timer_recorded"
+	authStartKey    = "core_auth_timer_start"
+	authRecordedKey = "core_auth_timer_recorded"
 )
 
 // AuthTimerStart stamps the clock. Place IMMEDIATELY BEFORE the auth middleware.

@@ -8,7 +8,7 @@
 # migration as already applied and SILENTLY SKIP it — the schema change never
 # lands and the first failing query reports a missing column or relation.
 #
-# Numbering scheme (adopted 2026-08-13, after coreapp v0.2.29 collided with a
+# Numbering scheme (adopted 2026-08-13, after core-lib v0.2.29 collided with a
 # skeells module migration on version 20260810120000):
 #
 #   new migrations : 16 digits = YYYYMMDDHHMMSS + 2-digit SOURCE ID

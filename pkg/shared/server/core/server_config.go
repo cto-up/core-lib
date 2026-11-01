@@ -49,7 +49,7 @@ type ServerConfig struct {
 	authSlot *authMiddlewareSlot
 }
 
-// authMiddlewareSlot is a mutable container for the coreapp auth middleware.
+// authMiddlewareSlot is a mutable container for the core-lib auth middleware.
 // It lets callers layer additional auth behavior AFTER the middleware slice
 // has been installed into the router, without relying on slice position or
 // function-pointer identity.

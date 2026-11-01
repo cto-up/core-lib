@@ -2,7 +2,7 @@ package core
 
 import "github.com/gin-gonic/gin"
 
-// WrapAuthMiddleware layers wrap on top of the coreapp auth middleware
+// WrapAuthMiddleware layers wrap on top of the core-lib auth middleware
 // installed by NewServerConfig. Inside wrap, call next(c) to delegate to the
 // underlying auth chain (API token + provider-based auth); skip the call to
 // short-circuit it.
