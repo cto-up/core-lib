@@ -52,3 +52,19 @@ get:
             type: array
             items:
               $ref: "../../core-schema.yaml#/components/schemas/EmailDelivery"
+delete:
+  description: >
+    Erases every delivery row for one exact address in the host tenant — how a
+    tenant administrator answers an erasure request from someone who is not a
+    member (ADR 090 §4). Tenant administrators only.
+  operationId: eraseEmailDeliveries
+  parameters:
+    - name: address
+      in: query
+      required: true
+      description: the exact address whose rows go
+      schema:
+        type: string
+  responses:
+    "204":
+      description: the rows for that address are gone (also when there were none)

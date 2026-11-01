@@ -12,6 +12,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const deleteEmailDeliveriesForRecipient = `-- name: DeleteEmailDeliveriesForRecipient :execrows
+DELETE FROM core_email_deliveries
+WHERE tenant_id IS NOT DISTINCT FROM $1::text
+  AND recipient_hmac = $2
+`
+
+type DeleteEmailDeliveriesForRecipientParams struct {
+	TenantID      pgtype.Text `json:"tenant_id"`
+	RecipientHmac []byte      `json:"recipient_hmac"`
+}
+
+// Erases one person's rows in one tenant (a NULL tenant is platform mail).
+func (q *Queries) DeleteEmailDeliveriesForRecipient(ctx context.Context, arg DeleteEmailDeliveriesForRecipientParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteEmailDeliveriesForRecipient, arg.TenantID, arg.RecipientHmac)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const insertEmailDelivery = `-- name: InsertEmailDelivery :exec
 INSERT INTO core_email_deliveries (
     tenant_id, kind, origin_type, origin_id, account,
@@ -92,6 +112,54 @@ func (q *Queries) ListEmailDeliveries(ctx context.Context, arg ListEmailDeliveri
 		arg.RowOffset,
 		arg.RowLimit,
 	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CoreEmailDelivery{}
+	for rows.Next() {
+		var i CoreEmailDelivery
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.TenantID,
+			&i.Kind,
+			&i.OriginType,
+			&i.OriginID,
+			&i.Account,
+			&i.RecipientHmac,
+			&i.RecipientMasked,
+			&i.RecipientRole,
+			&i.Status,
+			&i.SmtpCode,
+			&i.ErrorClass,
+			&i.MessageID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEmailDeliveriesForRecipient = `-- name: ListEmailDeliveriesForRecipient :many
+SELECT id, created_at, tenant_id, kind, origin_type, origin_id, account, recipient_hmac, recipient_masked, recipient_role, status, smtp_code, error_class, message_id FROM core_email_deliveries
+WHERE tenant_id IS NOT DISTINCT FROM $1::text
+  AND recipient_hmac = $2
+ORDER BY created_at DESC
+`
+
+type ListEmailDeliveriesForRecipientParams struct {
+	TenantID      pgtype.Text `json:"tenant_id"`
+	RecipientHmac []byte      `json:"recipient_hmac"`
+}
+
+// One person's rows in one tenant (a NULL tenant is platform mail), for an export.
+func (q *Queries) ListEmailDeliveriesForRecipient(ctx context.Context, arg ListEmailDeliveriesForRecipientParams) ([]CoreEmailDelivery, error) {
+	rows, err := q.db.Query(ctx, listEmailDeliveriesForRecipient, arg.TenantID, arg.RecipientHmac)
 	if err != nil {
 		return nil, err
 	}

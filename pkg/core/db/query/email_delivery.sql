@@ -32,3 +32,16 @@ FROM core_email_deliveries
 WHERE created_at >= @sent_from AND created_at < @sent_to
 GROUP BY kind, status
 ORDER BY kind, status;
+
+-- name: ListEmailDeliveriesForRecipient :many
+-- One person's rows in one tenant (a NULL tenant is platform mail), for an export.
+SELECT * FROM core_email_deliveries
+WHERE tenant_id IS NOT DISTINCT FROM sqlc.narg(tenant_id)::text
+  AND recipient_hmac = @recipient_hmac
+ORDER BY created_at DESC;
+
+-- name: DeleteEmailDeliveriesForRecipient :execrows
+-- Erases one person's rows in one tenant (a NULL tenant is platform mail).
+DELETE FROM core_email_deliveries
+WHERE tenant_id IS NOT DISTINCT FROM sqlc.narg(tenant_id)::text
+  AND recipient_hmac = @recipient_hmac;

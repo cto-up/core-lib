@@ -9,8 +9,10 @@ import (
 	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	coreservice "github.com/cto-up/core-lib/pkg/core/service"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/cto-up/core-lib/pkg/shared/mailer"
+	sharedservice "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -47,6 +49,7 @@ func (h *EmailDeliveryHandler) ListEmailDeliveries(c *gin.Context, params core.L
 			return
 		}
 		recipient = mac
+		h.recordMemberSearch(c, tenantID, *params.Address)
 	}
 
 	var status pgtype.Text
@@ -91,6 +94,50 @@ func (h *EmailDeliveryHandler) ListEmailDeliveries(c *gin.Context, params core.L
 		}
 	}
 	c.JSON(http.StatusOK, out)
+}
+
+// EraseEmailDeliveries implements core.ServerInterface: an administrator
+// answering an erasure request from someone who is not a member.
+func (h *EmailDeliveryHandler) EraseEmailDeliveries(c *gin.Context, params core.EraseEmailDeliveriesParams) {
+	logger := util.GetLoggerFromCtx(c.Request.Context())
+	tenantID := c.GetString(auth.AUTH_TENANT_ID_KEY)
+	if tenantID == "" {
+		c.JSON(http.StatusForbidden, helpers.ErrorStringResponse("a tenant is required"))
+		return
+	}
+	if strings.TrimSpace(params.Address) == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrorStringResponse("address is required"))
+		return
+	}
+	n, err := coreservice.EraseEmailDeliveries(c, h.store, tenantID, params.Address)
+	if err != nil {
+		logger.Err(err).Msg("Failed to erase email deliveries")
+		c.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
+		return
+	}
+	logger.Info().Str("tenant_id", tenantID).Int64("rows", n).Msg("email deliveries erased for one address")
+	c.Status(http.StatusNoContent)
+}
+
+// recordMemberSearch logs a search for a member's address as a read of their
+// personal data (core ADR 002). An address that is no member's names nobody
+// the log could record.
+func (h *EmailDeliveryHandler) recordMemberSearch(c *gin.Context, tenantID, address string) {
+	user, err := h.store.GetUserByEmailGlobal(c, mailer.NormalizeAddress(address))
+	if err != nil {
+		return
+	}
+	if _, err := h.store.GetSharedUserTenantMembership(c, repository.GetSharedUserTenantMembershipParams{
+		UserID: user.ID, TenantID: tenantID,
+	}); err != nil {
+		return
+	}
+	sharedservice.RecordPersonalDataAccess(c.Request.Context(), sharedservice.PersonalDataAccess{
+		TenantID:      tenantID,
+		ActorUserID:   c.GetString(auth.AUTH_USER_ID),
+		SubjectUserID: user.ID,
+		Resource:      "email_deliveries.search",
+	})
 }
 
 // SummarizeEmailDeliveries implements core.ServerInterface: counts across every

@@ -14,6 +14,7 @@ import (
 
 	// [DO NOT REMOVE COMMENT - Import]
 	"github.com/cto-up/core-lib/pkg/core/db"
+	coreservice "github.com/cto-up/core-lib/pkg/core/service"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
 	_ "github.com/cto-up/core-lib/pkg/shared/auth/kratos"
 	sharedconfig "github.com/cto-up/core-lib/pkg/shared/config"
@@ -252,6 +253,8 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 	if err := mailer.SetDeliveryLog(coreStore, recipientKey); err != nil {
 		log.Fatal().Err(err).Msg("Failed to configure the email delivery log")
 	}
+	// Core's own rows under the member's data-protection rights, for every app.
+	service.RegisterUserDataContributor(coreservice.NewEmailDeliveriesContributor(coreStore))
 
 	// Configure middleware order based on provider type
 	var middlewares []core.MiddlewareFunc

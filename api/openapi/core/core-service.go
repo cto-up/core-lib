@@ -159,6 +159,12 @@ type GetAPITokenAuditLogsParams struct {
 	PageSize *int32 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
 }
 
+// EraseEmailDeliveriesParams defines parameters for EraseEmailDeliveries.
+type EraseEmailDeliveriesParams struct {
+	// Address the exact address whose rows go
+	Address string `form:"address" json:"address"`
+}
+
 // ListEmailDeliveriesParams defines parameters for ListEmailDeliveries.
 type ListEmailDeliveriesParams struct {
 	Status *EmailDeliveryStatus `form:"status,omitempty" json:"status,omitempty"`
@@ -754,6 +760,9 @@ type ServerInterface interface {
 
 	// (PATCH /admin-api/v1/client-applications/{id}/tokens/{tokenId}/revoke)
 	RevokeAPIToken(c *gin.Context, id openapi_types.UUID, tokenId openapi_types.UUID)
+
+	// (DELETE /admin-api/v1/email-deliveries)
+	EraseEmailDeliveries(c *gin.Context, params EraseEmailDeliveriesParams)
 
 	// (GET /admin-api/v1/email-deliveries)
 	ListEmailDeliveries(c *gin.Context, params ListEmailDeliveriesParams)
@@ -1509,6 +1518,39 @@ func (siw *ServerInterfaceWrapper) RevokeAPIToken(c *gin.Context) {
 	}
 
 	siw.Handler.RevokeAPIToken(c, id, tokenId)
+}
+
+// EraseEmailDeliveries operation middleware
+func (siw *ServerInterfaceWrapper) EraseEmailDeliveries(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params EraseEmailDeliveriesParams
+
+	// ------------- Required query parameter "address" -------------
+
+	if paramValue := c.Query("address"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument address is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "address", c.Request.URL.Query(), &params.Address)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter address: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.EraseEmailDeliveries(c, params)
 }
 
 // ListEmailDeliveries operation middleware
@@ -4459,6 +4501,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId", wrapper.GetAPITokenById)
 	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId/audit", wrapper.GetAPITokenAuditLogs)
 	router.PATCH(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId/revoke", wrapper.RevokeAPIToken)
+	router.DELETE(options.BaseURL+"/admin-api/v1/email-deliveries", wrapper.EraseEmailDeliveries)
 	router.GET(options.BaseURL+"/admin-api/v1/email-deliveries", wrapper.ListEmailDeliveries)
 	router.GET(options.BaseURL+"/admin-api/v1/pending-deletions", wrapper.ListPendingDeletions)
 	router.GET(options.BaseURL+"/admin-api/v1/personal-data-access", wrapper.ListPersonalDataAccess)
