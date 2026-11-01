@@ -14,7 +14,11 @@ import (
 
 // RenderTemplate executes an HTML template file into a message body.
 func RenderTemplate(templateFile string, data any) (string, error) {
-	t, err := template.ParseFiles(templateFile)
+	return render(templateFile, nil, data)
+}
+
+func render(templateFile string, funcs template.FuncMap, data any) (string, error) {
+	t, err := template.New(filepath.Base(templateFile)).Funcs(funcs).ParseFiles(templateFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -26,13 +30,20 @@ func RenderTemplate(templateFile string, data any) (string, error) {
 }
 
 // RenderDomainTemplate renders the template GetTemplate finds for the request's
-// domain.
+// domain. The template can call {{contactEmail}}: contact@<request domain>, the
+// one mailbox a deployment answers on, so one template serves every domain.
 func RenderDomainTemplate(ctx *gin.Context, templateName string, data any) (string, error) {
 	path, err := GetTemplate(ctx, templateName)
 	if err != nil {
 		return "", fmt.Errorf("failed to find template: %w", err)
 	}
-	return RenderTemplate(path, data)
+	domainInfo, err := utils.GetDomainInfo(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get domain info: %w", err)
+	}
+	contact := "contact@" + domainInfo.Domain
+	funcs := template.FuncMap{"contactEmail": func() string { return contact }}
+	return render(path, funcs, data)
 }
 
 // GetTemplate finds a template file using hierarchical lookup based on domain and subdomain

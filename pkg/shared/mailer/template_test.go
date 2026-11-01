@@ -81,3 +81,28 @@ func TestGetTemplate(t *testing.T) {
 		})
 	}
 }
+
+func TestRenderDomainTemplateContactEmail(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	dir := t.TempDir()
+	originalWd, _ := os.Getwd()
+	defer os.Chdir(originalWd)
+	os.Chdir(dir)
+	assert.NoError(t, os.MkdirAll("templates", 0o755))
+	assert.NoError(t, os.WriteFile("templates/footer.html", []byte(`<a href="mailto:{{contactEmail}}">{{contactEmail}}</a>`), 0o600))
+
+	for origin, want := range map[string]string{
+		"https://acme.taskfactory.eu":   "contact@taskfactory.eu",
+		"https://taskfactory.cloud":     "contact@taskfactory.cloud",
+		"https://corpa.ctoup.localhost": "contact@ctoup.localhost",
+	} {
+		req := httptest.NewRequest("GET", "/", nil)
+		req.Header.Set("Origin", origin)
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		c.Request = req
+
+		body, err := mailer.RenderDomainTemplate(c, "footer.html", nil)
+		assert.NoError(t, err, origin)
+		assert.Equal(t, `<a href="mailto:`+want+`">`+want+`</a>`, body, origin)
+	}
+}
