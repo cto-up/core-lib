@@ -3,9 +3,9 @@ package emailservice
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"errors"
 	"fmt"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"html/template"
 	"net"
 	"net/smtp"

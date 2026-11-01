@@ -3,9 +3,9 @@ package service
 import (
 	"crypto/rand"
 	"crypto/sha256"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"encoding/base64"
 	"fmt"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"time"
 
 	"github.com/cto-up/core-lib/pkg/core/db"

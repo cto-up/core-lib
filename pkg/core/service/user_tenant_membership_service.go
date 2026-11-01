@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"errors"
 	"fmt"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"strings"
 	"time"
 

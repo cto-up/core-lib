@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"database/sql"
 	"fmt"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"time"
 
 	"github.com/jackc/pgx/v5"

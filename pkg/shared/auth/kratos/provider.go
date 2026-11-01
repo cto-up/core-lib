@@ -2,8 +2,8 @@ package kratos
 
 import (
 	"context"
-	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"fmt"
+	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"net/url"
 	"strings"
 	"sync"

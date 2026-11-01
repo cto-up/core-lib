@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"encoding/json"
 	"errors"
 	"fmt"
+	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"io"
 	"mime"
 	"net/http"

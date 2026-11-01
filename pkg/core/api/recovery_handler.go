@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"fmt"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 	"io"
 	"net/http"
 	"net/url"

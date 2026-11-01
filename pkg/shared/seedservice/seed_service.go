@@ -2,8 +2,8 @@ package seedservice
 
 import (
 	"context"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"fmt"
+	"github.com/cto-up/core-lib/pkg/shared/config"
 
 	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/cto-up/core-lib/pkg/core/db"
