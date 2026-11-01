@@ -30,7 +30,7 @@ pkg/shared/
 ├── service/             # Middleware (auth, tenant, requestID), user/tenant services
 ├── server/core/         # ServerConfig singleton (Gin + middleware wiring)
 ├── fileservice/         # Pluggable file storage (local, GCS, S3, Azure)
-├── emailservice/
+├── mailer/
 └── seedservice/
 
 api/

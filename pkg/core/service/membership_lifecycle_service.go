@@ -53,8 +53,8 @@ var (
 type MembershipLifecycleService struct {
 	store              *db.Store
 	authProvider       auth.AuthProvider
-	warnInactive       func(u repository.CoreUser, monthsInactive int, closesOn time.Time) error
-	notifyAdminClosure func(u repository.CoreUser, closure AdminClosure, deletesOn time.Time) error
+	warnInactive       func(ctx context.Context, u repository.CoreUser, monthsInactive int, closesOn time.Time) error
+	notifyAdminClosure func(ctx context.Context, u repository.CoreUser, closure AdminClosure, deletesOn time.Time) error
 }
 
 func NewMembershipLifecycleService(store *db.Store, authProvider auth.AuthProvider) *MembershipLifecycleService {
@@ -268,7 +268,7 @@ func (s *MembershipLifecycleService) ScheduleDeletionByAdmin(ctx context.Context
 	}
 	// The closure stands without the email: the pending-deletions list shows it
 	// and signing in shows the holder the way back.
-	if err := s.notifyAdminClosure(user, closure, *status.ScheduledFor); err != nil {
+	if err := s.notifyAdminClosure(ctx, user, closure, *status.ScheduledFor); err != nil {
 		logger.Err(err).Str("user_id", userID).Msg("close account by admin: notice not sent")
 	}
 	return status, nil

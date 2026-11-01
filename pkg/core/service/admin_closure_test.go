@@ -11,7 +11,7 @@ import (
 
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
 	"github.com/cto-up/core-lib/pkg/core/db/testutils"
-	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +27,7 @@ func TestScheduleDeletionByAdmin_Integration(t *testing.T) {
 	}
 	var sent []notice
 	svc := NewMembershipLifecycleService(store, nil)
-	svc.notifyAdminClosure = func(u repository.CoreUser, c AdminClosure, deletesOn time.Time) error {
+	svc.notifyAdminClosure = func(_ context.Context, u repository.CoreUser, c AdminClosure, deletesOn time.Time) error {
 		sent = append(sent, notice{u.ID, c, deletesOn})
 		return nil
 	}
@@ -72,7 +72,9 @@ func TestScheduleDeletionByAdmin_Integration(t *testing.T) {
 
 	t.Run("a failed email does not undo the closure", func(t *testing.T) {
 		failing := NewMembershipLifecycleService(store, nil)
-		failing.notifyAdminClosure = func(repository.CoreUser, AdminClosure, time.Time) error { return errors.New("smtp down") }
+		failing.notifyAdminClosure = func(context.Context, repository.CoreUser, AdminClosure, time.Time) error {
+			return errors.New("smtp down")
+		}
 		u := newUser(t, store, nil)
 		_, err := failing.ScheduleDeletionByAdmin(ctx, u, AdminClosure{})
 		require.NoError(t, err)
@@ -81,11 +83,11 @@ func TestScheduleDeletionByAdmin_Integration(t *testing.T) {
 }
 
 func TestAdminClosureTemplateRenders(t *testing.T) {
-	r := emailservice.NewEmailRequest("from@x.test", []string{"to@x.test"}, "s", "")
-	require.NoError(t, r.ParseTemplate(filepath.Join("..", "..", "..", "templates", adminClosureTemplate), adminClosureData{
+	body, err := mailer.RenderTemplate(filepath.Join("..", "..", "..", "templates", adminClosureTemplate), adminClosureData{
 		Name: "Ada", Organization: "Acme", DeletesOn: "21 November 2026", KeepURL: "https://acme.test/user/me/organizations",
-	}))
-	assert.Contains(t, r.Body, "Acme")
-	assert.Contains(t, r.Body, "21 November 2026")
-	assert.Contains(t, r.Body, `href="https://acme.test/user/me/organizations"`)
+	})
+	require.NoError(t, err)
+	assert.Contains(t, body, "Acme")
+	assert.Contains(t, body, "21 November 2026")
+	assert.Contains(t, body, `href="https://acme.test/user/me/organizations"`)
 }

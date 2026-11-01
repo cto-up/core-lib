@@ -4,9 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/cto-up/core-lib/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
+
 	"testing"
 	"time"
+
+	"github.com/cto-up/core-lib/pkg/shared/config"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -71,17 +74,17 @@ func TestSystemEmailFromFallsBack(t *testing.T) {
 	t.Cleanup(func() { config.Set(config.Config{}) })
 
 	config.Set(config.Config{})
-	if got := systemEmailFrom(); got == "" {
+	if got := mailer.SystemAccount().From; got == "" {
 		t.Fatal("an empty from-address would be rejected by most SMTP servers")
 	}
 
 	config.Set(config.Config{Email: config.Email{SystemFrom: "invites@acme.test"}})
-	if got := systemEmailFrom(); got != "invites@acme.test" {
+	if got := mailer.SystemAccount().From; got != "invites@acme.test" {
 		t.Fatalf("configured sender ignored, got %q", got)
 	}
 
 	config.Set(config.Config{Site: config.Site{Domain: "acme.test"}})
-	if got := systemEmailFrom(); got != "noreply@acme.test" {
+	if got := mailer.SystemAccount().From; got != "noreply@acme.test" {
 		t.Fatalf("with no explicit sender the deployment's OWN domain must be used, got %q", got)
 	}
 }

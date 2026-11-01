@@ -2,11 +2,10 @@ package core
 
 import (
 	"fmt"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"strings"
 
 	"github.com/cto-up/core-lib/pkg/shared/auth"
-	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 
@@ -76,7 +75,6 @@ func getWelcomeEmailURL(c *gin.Context, subdomains ...string) (string, error) {
 
 func resetPasswordRequest(c *gin.Context, baseAuthClient auth.AuthClient, url, toEmail string) error {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	fromEmail := config.SystemEmailFrom()
 
 	actionCodeSettings := &auth.ActionCodeSettings{
 		URL: url,
@@ -110,13 +108,13 @@ func resetPasswordRequest(c *gin.Context, baseAuthClient auth.AuthClient, url, t
 		Link: link,
 	}
 
-	r := emailservice.NewEmailRequest(fromEmail, []string{toEmail}, "Reset Password Link", "")
-	if err := r.ParseTemplateWithDomain(c, "email-reset.html", templateData); err != nil {
+	body, err := mailer.RenderDomainTemplate(c, "email-reset.html", templateData)
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse template for reset link")
 		return err
 	}
 
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.password_reset", To: []string{toEmail}, Subject: "Reset Password Link", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send reset link")
 		return err
 	}
@@ -125,7 +123,6 @@ func resetPasswordRequest(c *gin.Context, baseAuthClient auth.AuthClient, url, t
 
 func sendWelcomeEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, toEmail string) error {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	fromEmail := config.SystemEmailFrom()
 
 	actionCodeSettings := &auth.ActionCodeSettings{
 		URL: url,
@@ -144,13 +141,13 @@ func sendWelcomeEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, toEma
 		Link: link,
 	}
 
-	r := emailservice.NewEmailRequest(fromEmail, []string{toEmail}, "Welcome, Set Your Password", "")
-	if err := r.ParseTemplateWithDomain(c, "email-welcome.html", templateData); err != nil {
+	body, err := mailer.RenderDomainTemplate(c, "email-welcome.html", templateData)
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse template for reset link")
 		return err
 	}
 
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.password_set", To: []string{toEmail}, Subject: "Welcome, Set Your Password", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send reset link")
 		return err
 	}
@@ -174,7 +171,6 @@ func getConfirmationEmailURL(c *gin.Context) (string, error) {
 
 func sendConfirmationEmail(c *gin.Context, url, toEmail string, confirmationToken string) error {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	fromEmail := config.SystemEmailFrom()
 
 	// Option: Generate the email verification link manually
 	link := fmt.Sprintf("%s?token=%s", url, confirmationToken)
@@ -188,13 +184,13 @@ func sendConfirmationEmail(c *gin.Context, url, toEmail string, confirmationToke
 		Email: toEmail,
 	}
 
-	r := emailservice.NewEmailRequest(fromEmail, []string{toEmail}, "Please verify your email address", "")
-	if err := r.ParseTemplateWithDomain(c, "email-verification.html", templateData); err != nil {
+	body, err := mailer.RenderDomainTemplate(c, "email-verification.html", templateData)
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse template for email verification")
 		return err
 	}
 
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.email_verification", To: []string{toEmail}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send email verification")
 		return err
 	}
@@ -207,7 +203,6 @@ func sendConfirmationEmail(c *gin.Context, url, toEmail string, confirmationToke
 // the signup response.
 func sendAlreadyRegisteredEmail(c *gin.Context, baseAuthClient auth.AuthClient, signinURL, toEmail, tenantName string) error {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	fromEmail := config.SystemEmailFrom()
 
 	resetLink, err := baseAuthClient.PasswordResetLinkWithSettings(c, toEmail, &auth.ActionCodeSettings{URL: signinURL})
 	if err != nil {
@@ -228,13 +223,13 @@ func sendAlreadyRegisteredEmail(c *gin.Context, baseAuthClient auth.AuthClient, 
 		ResetLink:  resetLink,
 	}
 
-	r := emailservice.NewEmailRequest(fromEmail, []string{toEmail}, "Sign up attempt on "+tenantName, "")
-	if err := r.ParseTemplateWithDomain(c, "email-already-registered.html", templateData); err != nil {
+	body, err := mailer.RenderDomainTemplate(c, "email-already-registered.html", templateData)
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse template for already-registered email")
 		return err
 	}
 
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.signup_attempt", To: []string{toEmail}, Subject: "Sign up attempt on " + tenantName, Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send already-registered email")
 		return err
 	}
@@ -244,7 +239,6 @@ func sendAlreadyRegisteredEmail(c *gin.Context, baseAuthClient auth.AuthClient, 
 
 func sendTenantAddedEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, toEmail, tenantName string) error {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	fromEmail := config.SystemEmailFrom()
 
 	// Send the notification email
 	templateData := struct {
@@ -255,13 +249,13 @@ func sendTenantAddedEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, t
 		TenantName: tenantName,
 	}
 
-	r := emailservice.NewEmailRequest(fromEmail, []string{toEmail}, "You've been added to "+tenantName, "")
-	if err := r.ParseTemplateWithDomain(c, "email-tenant-added.html", templateData); err != nil {
+	body, err := mailer.RenderDomainTemplate(c, "email-tenant-added.html", templateData)
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse template for tenant added notification")
 		return err
 	}
 
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.membership_added", To: []string{toEmail}, Subject: "You've been added to " + tenantName, Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send tenant added notification")
 		return err
 	}
@@ -272,7 +266,6 @@ func sendTenantAddedEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, t
 // returnPath must already have been through safeReturnPath.
 func sendMagicLink(c *gin.Context, baseAuthClient auth.AuthClient, origin, toEmail, returnPath string) error {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	fromEmail := config.SystemEmailFrom()
 
 	actionCodeSettings := &auth.ActionCodeSettings{
 		URL:  origin + "/signin", // Redirect to signin after using the link
@@ -291,13 +284,13 @@ func sendMagicLink(c *gin.Context, baseAuthClient auth.AuthClient, origin, toEma
 		Link: link,
 	}
 
-	r := emailservice.NewEmailRequest(fromEmail, []string{toEmail}, "Welcome! Access Your Account", "")
-	if err := r.ParseTemplateWithDomain(c, "email-magic-link.html", templateData); err != nil {
+	body, err := mailer.RenderDomainTemplate(c, "email-magic-link.html", templateData)
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse template for magic link")
 		return err
 	}
 
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.magic_link", To: []string{toEmail}, Subject: "Welcome! Access Your Account", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send magic link email")
 		return err
 	}

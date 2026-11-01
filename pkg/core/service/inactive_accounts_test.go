@@ -27,7 +27,7 @@ func TestProcessInactiveAccounts_Integration(t *testing.T) {
 
 	var sent []sentWarning
 	svc := NewMembershipLifecycleService(store, nil)
-	svc.warnInactive = func(u repository.CoreUser, _ int, closesOn time.Time) error {
+	svc.warnInactive = func(_ context.Context, u repository.CoreUser, _ int, closesOn time.Time) error {
 		sent = append(sent, sentWarning{u.ID, closesOn})
 		return nil
 	}
@@ -153,7 +153,7 @@ func TestProcessInactiveAccounts_Integration(t *testing.T) {
 	t.Run("a warning that cannot be sent is withdrawn", func(t *testing.T) {
 		reset()
 		failing := NewMembershipLifecycleService(store, nil)
-		failing.warnInactive = func(repository.CoreUser, int, time.Time) error { return errors.New("smtp down") }
+		failing.warnInactive = func(context.Context, repository.CoreUser, int, time.Time) error { return errors.New("smtp down") }
 		u := newUser(t, store, nil)
 		setLastSeen(t, store, u, lastSeen)
 

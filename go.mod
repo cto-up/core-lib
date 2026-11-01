@@ -39,6 +39,11 @@ require (
 )
 
 require (
+	github.com/emersion/go-message v0.18.2 // indirect
+	github.com/wneessen/go-mail v0.8.1 // indirect
+)
+
+require (
 	cel.dev/expr v0.25.2 // indirect
 	cloud.google.com/go v0.121.6 // indirect
 	cloud.google.com/go/auth v0.18.2 // indirect

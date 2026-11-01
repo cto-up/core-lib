@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"strings"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
-	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	sharedservice "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 )
@@ -200,24 +199,18 @@ func (s *UserTenantMembershipService) sendInvitationEmail(ctx context.Context, e
 		ExpiresInDays: int(InvitationTTL / (24 * time.Hour)),
 	}
 
-	r := emailservice.NewEmailRequest(systemEmailFrom(), []string{email},
-		"You have been invited to "+tenantName, "")
-	if err := r.ParseTemplate("email-tenant-invitation.html", data); err != nil {
+	body, err := mailer.RenderTemplate("email-tenant-invitation.html", data)
+	if err != nil {
 		logger.Err(err).Str("tenant_id", tenantID).Msg("membership: could not render the invitation email")
 		return fmt.Errorf("render invitation email: %w", err)
 	}
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.tenant_invitation", To: []string{email}, Subject: "You have been invited to " + tenantName, Body: body, HTML: true}); err != nil {
 		logger.Err(err).Str("tenant_id", tenantID).
 			Msg("membership: INVITATION CREATED BUT EMAIL NOT SENT — the invitee does not know")
 		return fmt.Errorf("send invitation email: %w", err)
 	}
 	logger.Info().Str("tenant_id", tenantID).Msg("membership: invitation email sent")
 	return nil
-}
-
-// systemEmailFrom mirrors the from-address resolution the rest of core uses.
-func systemEmailFrom() string {
-	return config.SystemEmailFrom()
 }
 
 // AcceptInvitation turns a pending invitation into membership.

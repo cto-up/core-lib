@@ -11,7 +11,7 @@ import (
 
 	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
-	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/jackc/pgx/v5"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -103,7 +103,7 @@ func (s *MembershipLifecycleService) ProcessInactiveAccounts(ctx context.Context
 		if earliest := now.AddDate(0, InactivityWarningMonths, 0); closesOn.Before(earliest) {
 			closesOn = earliest
 		}
-		if err := s.warnInactive(u, months-InactivityWarningMonths, closesOn); err != nil {
+		if err := s.warnInactive(ctx, u, months-InactivityWarningMonths, closesOn); err != nil {
 			logger.Err(err).Str("user_id", u.ID).Msg("inactivity: warning not sent, will retry on the next run")
 			if err := s.store.ClearInactivityWarning(ctx, u.ID); err != nil {
 				logger.Err(err).Str("user_id", u.ID).Msg("inactivity: could not withdraw the unsent warning")
@@ -145,18 +145,18 @@ func lastActivity(u repository.CoreUser) time.Time {
 	return lastSeenTrackedSince
 }
 
-func sendInactivityWarning(u repository.CoreUser, monthsInactive int, closesOn time.Time) error {
-	r := emailservice.NewEmailRequest(systemEmailFrom(), []string{u.Email.String},
-		"Your account will be closed for inactivity", "")
+func sendInactivityWarning(ctx context.Context, u repository.CoreUser, monthsInactive int, closesOn time.Time) error {
 	data := struct {
 		Name           string
 		MonthsInactive int
 		ClosesOn       string
 	}{u.Profile.Name, monthsInactive, closesOn.Format("2 January 2006")}
-	if err := r.ParseTemplate(filepath.Join("templates", inactivityWarningTemplate), data); err != nil {
+	body, err := mailer.RenderTemplate(filepath.Join("templates", inactivityWarningTemplate), data)
+	if err != nil {
 		return err
 	}
-	return r.SendEmail()
+	return mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.inactive_warning", To: []string{u.Email.String},
+		Subject: "Your account will be closed for inactivity", Body: body, HTML: true})
 }
 
 type adminClosureData struct {
@@ -166,12 +166,12 @@ type adminClosureData struct {
 	KeepURL      string
 }
 
-func sendAdminClosureNotice(u repository.CoreUser, closure AdminClosure, deletesOn time.Time) error {
-	r := emailservice.NewEmailRequest(systemEmailFrom(), []string{u.Email.String},
-		"An administrator closed your account", "")
+func sendAdminClosureNotice(ctx context.Context, u repository.CoreUser, closure AdminClosure, deletesOn time.Time) error {
 	data := adminClosureData{u.Profile.Name, closure.TenantName, deletesOn.Format("2 January 2006"), closure.KeepURL}
-	if err := r.ParseTemplate(filepath.Join("templates", adminClosureTemplate), data); err != nil {
+	body, err := mailer.RenderTemplate(filepath.Join("templates", adminClosureTemplate), data)
+	if err != nil {
 		return err
 	}
-	return r.SendEmail()
+	return mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.admin_closure", To: []string{u.Email.String},
+		Subject: "An administrator closed your account", Body: body, HTML: true})
 }

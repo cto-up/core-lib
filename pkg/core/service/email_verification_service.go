@@ -5,13 +5,12 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"time"
 
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
-	"github.com/cto-up/core-lib/pkg/shared/emailservice"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
@@ -138,8 +137,6 @@ func (s *EmailVerificationService) VerifyEmailToken(ctx *gin.Context, token stri
 func (s *EmailVerificationService) SendVerificationEmail(ctx *gin.Context, email, token, baseFrontendURL string) error {
 	logger := util.GetLoggerFromCtx(ctx)
 
-	fromEmail := getSystemEmail()
-
 	// Create verification URL
 	verificationURL := fmt.Sprintf("%s/verify-email?token=%s", baseFrontendURL, token)
 
@@ -153,15 +150,15 @@ func (s *EmailVerificationService) SendVerificationEmail(ctx *gin.Context, email
 	}
 
 	// Create email request
-	r := emailservice.NewEmailRequest(fromEmail, []string{email}, "Please verify your email address", "")
+	body, err := mailer.RenderDomainTemplate(ctx, "email-verification.html", templateData)
 
-	if err := r.ParseTemplateWithDomain(ctx, "email-verification.html", templateData); err != nil {
+	if err != nil {
 		logger.Err(err).Msg("Failed to parse email verification template")
 		return fmt.Errorf("failed to prepare verification email: %w", err)
 	}
 
 	// Send email
-	if err := r.SendEmail(); err != nil {
+	if err := mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.email_verification", To: []string{email}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send verification email")
 		return fmt.Errorf("failed to send verification email: %w", err)
 	}
@@ -221,10 +218,4 @@ func (s *EmailVerificationService) CleanupExpiredTokens(ctx *gin.Context) error 
 		return fmt.Errorf("failed to cleanup expired tokens: %w", err)
 	}
 	return nil
-}
-
-// Helper function to get system email
-func getSystemEmail() string {
-	// This should match the pattern used in other email functions
-	return config.SystemEmailFrom()
 }
