@@ -54,6 +54,23 @@ type CoreClientApplication struct {
 	LastUsedAt  pgtype.Timestamptz `json:"last_used_at"`
 }
 
+type CoreEmailDelivery struct {
+	ID              uuid.UUID   `json:"id"`
+	CreatedAt       time.Time   `json:"created_at"`
+	TenantID        pgtype.Text `json:"tenant_id"`
+	Kind            string      `json:"kind"`
+	OriginType      pgtype.Text `json:"origin_type"`
+	OriginID        pgtype.Text `json:"origin_id"`
+	Account         string      `json:"account"`
+	RecipientHmac   []byte      `json:"recipient_hmac"`
+	RecipientMasked string      `json:"recipient_masked"`
+	RecipientRole   string      `json:"recipient_role"`
+	Status          string      `json:"status"`
+	SmtpCode        pgtype.Int4 `json:"smtp_code"`
+	ErrorClass      pgtype.Text `json:"error_class"`
+	MessageID       pgtype.Text `json:"message_id"`
+}
+
 type CoreEmailVerificationToken struct {
 	ID        uuid.UUID          `json:"id"`
 	UserID    string             `json:"user_id"`

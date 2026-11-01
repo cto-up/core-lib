@@ -16,6 +16,8 @@ import (
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
 	_ "github.com/cto-up/core-lib/pkg/shared/auth/kratos"
+	sharedconfig "github.com/cto-up/core-lib/pkg/shared/config"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/cto-up/core-lib/pkg/shared/observability"
 	"github.com/cto-up/core-lib/pkg/shared/service"
 
@@ -243,6 +245,13 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 		service.NewLastSeenRecorder(coreStore),
 	)
 	service.SetPersonalDataAccessStore(coreStore)
+	recipientKey, err := sharedconfig.MailRecipientKey()
+	if err != nil {
+		log.Fatal().Err(err).Msg("The email delivery log needs MAIL_RECIPIENT_KEY (base64 of 32 random bytes: openssl rand -base64 32)")
+	}
+	if err := mailer.SetDeliveryLog(coreStore, recipientKey); err != nil {
+		log.Fatal().Err(err).Msg("Failed to configure the email delivery log")
+	}
 
 	// Configure middleware order based on provider type
 	var middlewares []core.MiddlewareFunc

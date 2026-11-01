@@ -7,6 +7,9 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/config"
 )
 
+// SystemRef is the delivery log's account for the platform relay.
+const SystemRef = "system"
+
 // SystemAccount is the platform relay (SMTP_*), sending as the system address.
 // Port 465 is implicit TLS; every other port is STARTTLS, which is mandatory.
 func SystemAccount() Account {
@@ -22,5 +25,6 @@ func SystemAccount() Account {
 		Password:    s.Password,
 		From:        config.SystemEmailFrom(),
 		ImplicitTLS: port == 465,
+		Ref:         SystemRef,
 	}
 }

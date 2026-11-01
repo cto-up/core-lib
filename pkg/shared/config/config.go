@@ -28,6 +28,9 @@
 package config
 
 import (
+	"encoding/base64"
+	"errors"
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -124,6 +127,11 @@ type Email struct {
 	// there is no domain either it is a non-routable placeholder, never a real
 	// third party.
 	SystemFrom string
+
+	// RecipientKey (MAIL_RECIPIENT_KEY, base64 of 32 bytes) keys the HMAC the
+	// email delivery log stores instead of an address (ADR 090 §4). Kept out
+	// of the database so a dump cannot be matched against known addresses.
+	RecipientKey string
 }
 
 // SMTP is the relay that actually sends it.
@@ -231,6 +239,22 @@ func SystemEmailFrom() string {
 		return "noreply@" + d
 	}
 	return FallbackSystemEmail
+}
+
+// MailRecipientKey decodes Email.RecipientKey; it must be 32 bytes.
+func MailRecipientKey() ([]byte, error) {
+	raw := strings.TrimSpace(Current().Email.RecipientKey)
+	if raw == "" {
+		return nil, errors.New("MAIL_RECIPIENT_KEY is not set")
+	}
+	key, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
+		return nil, fmt.Errorf("MAIL_RECIPIENT_KEY is not base64: %w", err)
+	}
+	if len(key) != 32 {
+		return nil, fmt.Errorf("MAIL_RECIPIENT_KEY must decode to 32 bytes, got %d", len(key))
+	}
+	return key, nil
 }
 
 // SMTPSettings is the relay configuration.

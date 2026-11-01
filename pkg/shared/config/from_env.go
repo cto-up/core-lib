@@ -21,7 +21,8 @@ func FromEnv() Config {
 			Domain: os.Getenv("DOMAIN"),
 		},
 		Email: Email{
-			SystemFrom: os.Getenv("SYSTEM_EMAIL"),
+			SystemFrom:   os.Getenv("SYSTEM_EMAIL"),
+			RecipientKey: os.Getenv("MAIL_RECIPIENT_KEY"),
 		},
 		Database: Database{
 			URL:      os.Getenv("DATABASE_URL"),

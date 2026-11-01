@@ -204,7 +204,7 @@ func (s *UserTenantMembershipService) sendInvitationEmail(ctx context.Context, e
 		logger.Err(err).Str("tenant_id", tenantID).Msg("membership: could not render the invitation email")
 		return fmt.Errorf("render invitation email: %w", err)
 	}
-	if err := mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.tenant_invitation", To: []string{email}, Subject: "You have been invited to " + tenantName, Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.tenant_invitation", TenantID: tenantID, To: []string{email}, Subject: "You have been invited to " + tenantName, Body: body, HTML: true}); err != nil {
 		logger.Err(err).Str("tenant_id", tenantID).
 			Msg("membership: INVITATION CREATED BUT EMAIL NOT SENT — the invitee does not know")
 		return fmt.Errorf("send invitation email: %w", err)

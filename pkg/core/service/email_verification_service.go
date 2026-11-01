@@ -158,7 +158,7 @@ func (s *EmailVerificationService) SendVerificationEmail(ctx *gin.Context, email
 	}
 
 	// Send email
-	if err := mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{Kind: "core.email_verification", To: []string{email}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(ctx, mailer.SystemAccount(), mailer.Message{TenantID: ctx.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.email_verification", To: []string{email}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send verification email")
 		return fmt.Errorf("failed to send verification email: %w", err)
 	}

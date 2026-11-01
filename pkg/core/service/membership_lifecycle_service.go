@@ -12,6 +12,7 @@ import (
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
+	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	sharedservice "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -578,10 +579,15 @@ func (s *MembershipLifecycleService) PurgePersonalDataAccessLog(ctx context.Cont
 	return s.store.PurgePersonalDataAccessBefore(ctx, now.AddDate(0, -PersonalDataAccessRetentionMonths, 0))
 }
 
+// PurgeEmailDeliveries deletes delivery-log rows past their retention (ADR 090 §4).
+func (s *MembershipLifecycleService) PurgeEmailDeliveries(ctx context.Context, now time.Time) (int64, error) {
+	return s.store.PurgeEmailDeliveriesBefore(ctx, now.Add(-mailer.DeliveryRetention))
+}
+
 // StartLifecycleSweeper runs the scheduled halves of ADR 040: deletions whose
 // grace period has expired, the dormant data of members who left long ago, and
 // accounts nobody has used for the configured inactivity period, and
-// personal-data access log rows past their retention.
+// personal-data access log and email delivery rows past their retention.
 //
 // One immediate pass at boot, then daily. Both are idempotent and bounded, so a
 // missed run costs a day of latency rather than correctness — which is why an
@@ -631,6 +637,12 @@ func (s *MembershipLifecycleService) sweepOnce(ctx context.Context) {
 		logger.Err(err).Msg("lifecycle sweep: personal-data access log purge failed")
 	} else if n > 0 {
 		logger.Info().Int64("rows", n).Msg("lifecycle sweep: personal-data access log purged")
+	}
+
+	if n, err := s.PurgeEmailDeliveries(ctx, time.Now()); err != nil {
+		logger.Err(err).Msg("lifecycle sweep: email delivery log purge failed")
+	} else if n > 0 {
+		logger.Info().Int64("rows", n).Msg("lifecycle sweep: email delivery log purged")
 	}
 }
 

@@ -114,7 +114,7 @@ func resetPasswordRequest(c *gin.Context, baseAuthClient auth.AuthClient, url, t
 		return err
 	}
 
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.password_reset", To: []string{toEmail}, Subject: "Reset Password Link", Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.password_reset", To: []string{toEmail}, Subject: "Reset Password Link", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send reset link")
 		return err
 	}
@@ -147,7 +147,7 @@ func sendWelcomeEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, toEma
 		return err
 	}
 
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.password_set", To: []string{toEmail}, Subject: "Welcome, Set Your Password", Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.password_set", To: []string{toEmail}, Subject: "Welcome, Set Your Password", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send reset link")
 		return err
 	}
@@ -190,7 +190,7 @@ func sendConfirmationEmail(c *gin.Context, url, toEmail string, confirmationToke
 		return err
 	}
 
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.email_verification", To: []string{toEmail}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.email_verification", To: []string{toEmail}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send email verification")
 		return err
 	}
@@ -229,7 +229,7 @@ func sendAlreadyRegisteredEmail(c *gin.Context, baseAuthClient auth.AuthClient, 
 		return err
 	}
 
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.signup_attempt", To: []string{toEmail}, Subject: "Sign up attempt on " + tenantName, Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.signup_attempt", To: []string{toEmail}, Subject: "Sign up attempt on " + tenantName, Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send already-registered email")
 		return err
 	}
@@ -255,7 +255,7 @@ func sendTenantAddedEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, t
 		return err
 	}
 
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.membership_added", To: []string{toEmail}, Subject: "You've been added to " + tenantName, Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.membership_added", To: []string{toEmail}, Subject: "You've been added to " + tenantName, Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send tenant added notification")
 		return err
 	}
@@ -290,7 +290,7 @@ func sendMagicLink(c *gin.Context, baseAuthClient auth.AuthClient, origin, toEma
 		return err
 	}
 
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{Kind: "core.magic_link", To: []string{toEmail}, Subject: "Welcome! Access Your Account", Body: body, HTML: true}); err != nil {
+	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.magic_link", To: []string{toEmail}, Subject: "Welcome! Access Your Account", Body: body, HTML: true}); err != nil {
 		logger.Err(err).Msg("Failed to send magic link email")
 		return err
 	}

@@ -49,6 +49,9 @@ type Account struct {
 	// HELODomain sets the EHLO name when the relay insists on a specific one.
 	// Empty lets go-mail use the local hostname.
 	HELODomain string
+	// Ref is what the delivery log records as the account: "system" for the
+	// platform relay, else the email_smtp connection id.
+	Ref string
 }
 
 // AccountFromCreds reads a resolved email_smtp connection.
@@ -104,8 +107,11 @@ type Message struct {
 	// Kind names what the message is ("core.password_reset",
 	// "workflow.send_email"). Required: it is what the delivery log shows in
 	// place of the subject.
-	Kind        string
-	Origin      Origin
+	Kind   string
+	Origin Origin
+	// TenantID the mail is sent for. Empty is platform mail that belongs to
+	// no tenant.
+	TenantID    string
 	To          []string
 	Cc          []string
 	Bcc         []string
@@ -305,13 +311,17 @@ func (a Account) Client() (*mail.Client, error) {
 func Send(ctx context.Context, a Account, m Message) error {
 	msg, err := Compose(ctx, a, m)
 	if err != nil {
+		record(ctx, a, m, "", err, true)
 		return err
 	}
 	client, err := a.Client()
 	if err != nil {
+		record(ctx, a, m, "", err, false)
 		return fmt.Errorf("reach %s: %w", a.Host, err)
 	}
-	if err := client.DialAndSendWithContext(ctx, msg); err != nil {
+	err = client.DialAndSendWithContext(ctx, msg)
+	record(ctx, a, m, msg.GetMessageID(), err, false)
+	if err != nil {
 		return fmt.Errorf("send through %s: %w", a.Host, err)
 	}
 	return nil

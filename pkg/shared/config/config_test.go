@@ -156,3 +156,22 @@ func TestTheLibraryDoesNotReadTheEnvironment(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestMailRecipientKeyIsReadAndChecked(t *testing.T) {
+	prev := config.Current()
+	t.Cleanup(func() { config.Set(prev) })
+
+	t.Setenv("MAIL_RECIPIENT_KEY", "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=")
+	config.Set(config.FromEnv())
+	key, err := config.MailRecipientKey()
+	assert.NoError(t, err)
+	assert.Len(t, key, 32)
+
+	for _, bad := range []string{"", "not base64!", "c2hvcnQ="} {
+		c := prev
+		c.Email.RecipientKey = bad
+		config.Set(c)
+		_, err := config.MailRecipientKey()
+		assert.Error(t, err, "%q", bad)
+	}
+}
