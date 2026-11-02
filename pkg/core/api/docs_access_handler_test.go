@@ -46,7 +46,10 @@ func TestDocsAccess(t *testing.T) {
 	customerAdmin := fakeVerifier{token: &auth.Token{UID: "u", Claims: map[string]interface{}{
 		auth.AUTH_TENANT_MEMBERSHIPS: membership("CUSTOMER_ADMIN"),
 	}}}
-	legacyAdmin := fakeVerifier{token: &auth.Token{UID: "u", Claims: map[string]interface{}{
+	globalAdmin := fakeVerifier{token: &auth.Token{UID: "u", Claims: map[string]interface{}{
+		"global_roles": []interface{}{"ADMIN"},
+	}}}
+	membershipAdmin := fakeVerifier{token: &auth.Token{UID: "u", Claims: map[string]interface{}{
 		auth.AUTH_TENANT_MEMBERSHIPS: membership("ADMIN"),
 	}}}
 	plainUser := fakeVerifier{token: &auth.Token{UID: "u", Claims: map[string]interface{}{
@@ -68,7 +71,9 @@ func TestDocsAccess(t *testing.T) {
 	}{
 		{"customer admin opens customer-admin", customerAdmin, "customer-admin", true, http.StatusNoContent},
 		{"customer admin is refused super-admin", customerAdmin, "super-admin", true, http.StatusForbidden},
-		{"legacy ADMIN still opens customer-admin", legacyAdmin, "customer-admin", true, http.StatusNoContent},
+		{"global ADMIN opens customer-admin", globalAdmin, "customer-admin", true, http.StatusNoContent},
+		{"global ADMIN is refused super-admin", globalAdmin, "super-admin", true, http.StatusForbidden},
+		{"ADMIN inside a membership is ignored, as the auth provider does", membershipAdmin, "customer-admin", true, http.StatusForbidden},
 		{"a user opens user", plainUser, "user", true, http.StatusNoContent},
 		{"a user opens agents", plainUser, "agents", true, http.StatusNoContent},
 		{"a user is refused customer-admin", plainUser, "customer-admin", true, http.StatusForbidden},

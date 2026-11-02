@@ -24,9 +24,10 @@ type docsRule func(globalRoles, tenantRoles map[string]bool) bool
 func anySession(_, _ map[string]bool) bool { return true }
 
 func customerAdmin(global, tenant map[string]bool) bool {
-	// The legacy ADMIN value counts until a migration removes it from the enum.
-	return global[string(core.SUPERADMIN)] ||
-		tenant[string(core.CUSTOMERADMIN)] || tenant[string(core.ADMIN)]
+	// ADMIN is global-only, as the auth provider reads it: an ADMIN inside a
+	// tenant membership is legacy data it ignores, and so does this.
+	return global[string(core.SUPERADMIN)] || global[string(core.ADMIN)] ||
+		tenant[string(core.CUSTOMERADMIN)]
 }
 
 func superAdmin(global, _ map[string]bool) bool { return global[string(core.SUPERADMIN)] }
