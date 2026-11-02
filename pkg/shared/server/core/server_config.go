@@ -326,6 +326,10 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 		membershipMW...,
 	)
 
+	// The role gate for docs.<domain> (lms ADR 062). nginx asks it with no
+	// tenant in play, so it mounts outside the tenant and auth middleware.
+	coreapi.RegisterDocsAccessRoute(router, coreapi.NewDocsAccessHandler(authProvider.GetAuthClient()))
+
 	return &ServerConfig{
 		Router:           router,
 		AuthProvider:     authProvider,

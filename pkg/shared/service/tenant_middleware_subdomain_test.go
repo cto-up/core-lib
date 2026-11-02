@@ -27,10 +27,7 @@ import (
 func TestInfrastructureSubdomainsAreTenantless(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// Mirrors the condition in MiddlewareFunc.
-	tenantless := func(subdomain string) bool {
-		return utils.IsAdminSubdomain(subdomain) || subdomain == "auth" || subdomain == "api"
-	}
+	tenantless := IsInfrastructureSubdomain
 
 	for _, tc := range []struct {
 		host string
@@ -41,6 +38,7 @@ func TestInfrastructureSubdomainsAreTenantless(t *testing.T) {
 		{"auth.example.com", true, "Kratos"},
 		{"admin.example.com", true, "admin console"},
 		{"www.example.com", true, "apex"},
+		{"docs.example.com", true, "the role-gated docs sites (lms ADR 062)"},
 		{"example.com", true, "apex"},
 		{"acme.example.com", false, "a real tenant must still resolve"},
 	} {

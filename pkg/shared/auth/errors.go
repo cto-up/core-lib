@@ -12,6 +12,8 @@ import (
 type AuthError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+	// Status is the HTTP status the provider answered, when it answered.
+	Status int `json:"-"`
 }
 
 func (e *AuthError) Error() string {
@@ -39,6 +41,18 @@ func IsUserNotFound(err error) bool {
 	return false
 }
 
+// IsUnavailable reports whether the provider could not answer at all (a
+// network failure) or failed on its side (5xx), as opposed to refusing the
+// credential. A caller tells the two apart so an outage is never shown as
+// "please sign in again".
+func IsUnavailable(err error) bool {
+	var authErr *AuthError
+	if !errors.As(err, &authErr) {
+		return false
+	}
+	return authErr.Code == "unknown-error" || authErr.Status >= 500
+}
+
 func IsEmailAlreadyExists(err error) bool {
 	if authErr, ok := err.(*AuthError); ok {
 		return authErr.Code == ErrorCodeEmailAlreadyExists
@@ -62,6 +76,7 @@ func ConvertKratosError(err error) error {
 	// Default values
 	errorCode := "kratos-error"
 	message := apiErr.Error()
+	status := 0
 
 	// 1. Try to get ID from the Model
 	model := apiErr.Model()
@@ -74,6 +89,9 @@ func ConvertKratosError(err error) error {
 			message = eg.Error.Message
 			if eg.Error.Reason != nil {
 				message += " reason: " + *eg.Error.Reason
+			}
+			if eg.Error.Code != nil {
+				status = int(*eg.Error.Code)
 			}
 			// A 409 on identity creation means the email is already taken.
 			// Map it to a stable code with a user-friendly message instead of
@@ -115,6 +133,9 @@ func ConvertKratosError(err error) error {
 			ID string `json:"id"` // Some responses have ID at top level
 		}
 		if jsonErr := json.Unmarshal(apiErr.Body(), &raw); jsonErr == nil {
+			if status == 0 {
+				status = int(raw.Error.Code)
+			}
 			if raw.Error.Code == 409 {
 				return &AuthError{
 					Code:    ErrorCodeEmailAlreadyExists,
@@ -138,6 +159,7 @@ func ConvertKratosError(err error) error {
 	return &AuthError{
 		Code:    errorCode,
 		Message: message,
+		Status:  status,
 	}
 }
 

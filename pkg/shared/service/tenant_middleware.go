@@ -48,7 +48,7 @@ func (fam *TenantMiddleware) MiddlewareFunc() gin.HandlerFunc {
 		// to resolve subdomain "api", find no tenant, and get 404 "Tenant not
 		// found" before reaching the handler — which in both cases carries its
 		// own tenant context anyway (the OAuth `state` row, the webhook id).
-		if utils.IsAdminSubdomain(subdomain) || subdomain == "auth" || subdomain == "api" {
+		if IsInfrastructureSubdomain(subdomain) {
 			ctx.Set(auth.AUTH_TENANT_ID_KEY, "")
 			ctx.Next()
 			return
@@ -89,4 +89,12 @@ func (fam *TenantMiddleware) MiddlewareFunc() gin.HandlerFunc {
 		ctx.Set(auth.AUTH_TENANT_ID_KEY, tenant.TenantID)
 		ctx.Next()
 	}
+}
+
+// IsInfrastructureSubdomain reports whether a subdomain names a vhost rather
+// than a tenant: the root site, Kratos (auth), the api, and the docs sites
+// (lms ADR 062).
+func IsInfrastructureSubdomain(subdomain string) bool {
+	return utils.IsAdminSubdomain(subdomain) ||
+		subdomain == "auth" || subdomain == "api" || subdomain == "docs"
 }
