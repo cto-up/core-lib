@@ -22,8 +22,28 @@ type TenantConfigHandler struct {
 	store        *db.Store
 }
 
+// canEditTenantSettings refuses a write from anyone who does not run the
+// tenant. The auth middleware gates only /api/v1/users, /admin-api and
+// /superadmin-api by role, and these routes live under /api/v1/configs. An API
+// token carries its creator's current roles, so a token passes only when an
+// admin made it.
+func canEditTenantSettings(c *gin.Context) bool {
+	if auth.IsSuperAdmin(c) || auth.IsAdmin(c) || auth.IsCustomerAdmin(c) || auth.IsActingReseller(c) {
+		return true
+	}
+	c.JSON(http.StatusForbidden, gin.H{
+		"status":  http.StatusForbidden,
+		"code":    "tenant_settings_admin_required",
+		"message": "Need to be a CUSTOMER_ADMIN of this tenant to change its settings",
+	})
+	return false
+}
+
 // AddTenantConfig implements openapi.ServerInterface.
 func (exh *TenantConfigHandler) AddTenantConfig(c *gin.Context) {
+	if !canEditTenantSettings(c) {
+		return
+	}
 	logger := util.GetLoggerFromCtx(c.Request.Context())
 	tenantID, exists := c.Get(auth.AUTH_TENANT_ID_KEY)
 	if !exists {
@@ -60,6 +80,9 @@ func (exh *TenantConfigHandler) AddTenantConfig(c *gin.Context) {
 
 // UpdateTenantConfig implements openapi.ServerInterface.
 func (exh *TenantConfigHandler) UpdateTenantConfig(c *gin.Context, id uuid.UUID) {
+	if !canEditTenantSettings(c) {
+		return
+	}
 	logger := util.GetLoggerFromCtx(c.Request.Context())
 	tenantID, exists := c.Get(auth.AUTH_TENANT_ID_KEY)
 	if !exists {
@@ -89,6 +112,9 @@ func (exh *TenantConfigHandler) UpdateTenantConfig(c *gin.Context, id uuid.UUID)
 
 // DeleteTenantConfig implements openapi.ServerInterface.
 func (exh *TenantConfigHandler) DeleteTenantConfig(c *gin.Context, id uuid.UUID) {
+	if !canEditTenantSettings(c) {
+		return
+	}
 	logger := util.GetLoggerFromCtx(c.Request.Context())
 	tenantID, exists := c.Get(auth.AUTH_TENANT_ID_KEY)
 	if !exists {
