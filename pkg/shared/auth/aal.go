@@ -34,31 +34,6 @@ func GetAALInfo(c *gin.Context) *AALInfo {
 	}
 }
 
-// GetCurrentAAL retrieves just the current AAL level
-func GetCurrentAAL(c *gin.Context) string {
-	return GetAALInfo(c).Current
-}
-
-// GetAvailableAAL retrieves the highest AAL the user can achieve
-func GetAvailableAAL(c *gin.Context) string {
-	return GetAALInfo(c).Available
-}
-
-// CanUpgradeToAAL2 checks if user can upgrade to AAL2
-func CanUpgradeToAAL2(c *gin.Context) bool {
-	return GetAALInfo(c).CanUpgrade
-}
-
-// HasMFAConfigured checks if user has any MFA method configured
-func HasMFAConfigured(c *gin.Context) bool {
-	return GetAALInfo(c).Available == "aal2"
-}
-
-// IsAAL2Active checks if current session is at AAL2
-func IsAAL2Active(c *gin.Context) bool {
-	return GetAALInfo(c).Current == "aal2"
-}
-
 // RequireAAL2StepUp enforces a step-up to AAL2 (MFA) for a sensitive
 // operation. It writes the HTTP response and returns false when the request
 // must be blocked; it returns true (and writes nothing) when the caller may

@@ -169,34 +169,6 @@ func getConfirmationEmailURL(c *gin.Context) (string, error) {
 	return url, nil
 }
 
-func sendConfirmationEmail(c *gin.Context, url, toEmail string, confirmationToken string) error {
-	logger := util.GetLoggerFromCtx(c.Request.Context())
-
-	// Option: Generate the email verification link manually
-	link := fmt.Sprintf("%s?token=%s", url, confirmationToken)
-
-	// Send the link via email
-	templateData := struct {
-		Link  string
-		Email string
-	}{
-		Link:  link,
-		Email: toEmail,
-	}
-
-	body, err := mailer.RenderDomainTemplate(c, "email-verification.html", templateData)
-	if err != nil {
-		logger.Err(err).Msg("Failed to parse template for email verification")
-		return err
-	}
-
-	if err := mailer.Send(c, mailer.SystemAccount(), mailer.Message{TenantID: c.GetString(auth.AUTH_TENANT_ID_KEY), Kind: "core.email_verification", To: []string{toEmail}, Subject: "Please verify your email address", Body: body, HTML: true}); err != nil {
-		logger.Err(err).Msg("Failed to send email verification")
-		return err
-	}
-	return nil
-}
-
 // sendAlreadyRegisteredEmail is sent when someone attempts to sign up with an
 // email that already has an account on the tenant. It links to signin and
 // (optionally) to a password-reset flow, without leaking which it was through

@@ -240,15 +240,6 @@ func GetBaseDomainWithPort(c *gin.Context) (string, error) {
 	return baseDomain, nil
 }
 
-// GetRootDomain extracts just the domain part without subdomain or port
-func GetRootDomain(c *gin.Context) (string, error) {
-	domainInfo, err := GetDomainInfo(c)
-	if err != nil {
-		return "", err
-	}
-	return domainInfo.Domain, nil
-}
-
 // ExtractBaseURL derives the full scheme+domain+port from the request with no subdomain.
 // It respects X-Forwarded-Proto for reverse proxy setups.
 // Examples: "https://ctoup.com", "http://localhost:3000"
@@ -262,40 +253,4 @@ func ExtractBaseURL(c *gin.Context) (string, error) {
 		return "", fmt.Errorf("could not determine request domain: %w", err)
 	}
 	return fmt.Sprintf("%s://%s", host.Scheme, domain), nil
-}
-
-// GetTLD extracts just the top-level domain
-func GetTLD(c *gin.Context) (string, error) {
-	domainInfo, err := GetDomainInfo(c)
-	if err != nil {
-		return "", err
-	}
-	return domainInfo.TLD, nil
-}
-
-// Example usage and test cases
-func ExampleUsage() {
-	// Example test cases (you can remove this in production)
-	testCases := []string{
-		"sub.example.com",
-		"api.v2.example.com",
-		"www.example.co.uk",
-		"sub.example.co.uk",
-		"deep.nested.sub.example.com",
-		"example.com",
-		"example.co.uk",
-		"localhost",
-		"192.168.1.1",
-		"api.staging.myapp.herokuapp.com",
-	}
-
-	for _, testCase := range testCases {
-		parts := strings.Split(testCase, ".")
-		subdomain, domain, tld := extractDomainParts(testCase)
-		// Log results for testing
-		_ = parts
-		_ = subdomain
-		_ = domain
-		_ = tld
-	}
 }

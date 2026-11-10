@@ -7,7 +7,6 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -107,11 +106,4 @@ func RequestIDMiddleware() gin.HandlerFunc {
 			Dur("duration", duration).
 			Msg("Request handled")
 	}
-}
-
-func GetLoggerFromContext(c *gin.Context) zerolog.Logger {
-	if logger, ok := c.Request.Context().Value(util.LoggerKey).(zerolog.Logger); ok {
-		return logger
-	}
-	return log.Logger // Fallback to global logger
 }

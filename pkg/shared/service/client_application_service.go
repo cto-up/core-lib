@@ -5,14 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
-	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -527,65 +525,4 @@ func (s *ClientApplicationService) VerifyAPIToken(ctx *gin.Context, tokenString 
 	}
 
 	return token, nil
-}
-
-// APITokenMiddleware is a middleware for API token authentication
-func APITokenMiddleware(clientAppService *ClientApplicationService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Public routes bypass token auth
-		if strings.HasPrefix(c.Request.URL.Path, "/public") {
-			c.Next()
-			return
-		}
-
-		// Get token from Authorization header
-		authHeader := c.Request.Header.Get("Authorization")
-		token := ""
-
-		// Check Bearer token first (OAuth 2.0 standard)
-		if strings.HasPrefix(authHeader, "Bearer ") {
-			token = strings.TrimPrefix(authHeader, "Bearer ")
-		} else if strings.HasPrefix(authHeader, "Token ") {
-			// Also accept Token prefix
-			token = strings.TrimPrefix(authHeader, "Token ")
-		} else if authHeader != "" {
-			// Try to use header value directly
-			token = authHeader
-		}
-
-		// If no token in header, check for query parameter (for websocket connections)
-		if token == "" {
-			token = c.Query("token")
-		}
-
-		if token == "" {
-			// No token provided, let the next middleware handle auth
-			c.Next()
-			return
-		}
-
-		// Verify token
-		apiToken, err := clientAppService.VerifyAPIToken(c, token)
-		if err != nil {
-			// Token verification failed, let the next middleware handle auth
-			c.Next()
-			return
-		}
-
-		// Store token info in context for later use
-		c.Set("api_token", apiToken)
-		c.Set("api_token_scopes", apiToken.Scopes)
-
-		// If token has a tenant ID, set it for the tenant middleware
-		if apiToken.TenantID.Valid {
-			c.Set(auth.AUTH_TENANT_ID_KEY, apiToken.TenantID.String)
-		}
-
-		c.Next()
-	}
-}
-
-// HexEncodeTokenHash returns a hex-encoded token hash for display
-func HexEncodeTokenHash(hash []byte) string {
-	return hex.EncodeToString(hash)
 }

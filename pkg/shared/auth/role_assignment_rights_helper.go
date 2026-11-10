@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/cto-up/core-lib/pkg/core/db"
@@ -127,73 +126,6 @@ func IsReseller(c *gin.Context) bool {
 	return isReseller
 }
 
-// GetUserTenantRoles retrieves the user's roles in the current tenant from context
-func GetUserTenantRoles(c *gin.Context) ([]string, error) {
-	rolesInterface, exists := c.Get(CONTEXT_KEY_TENANT_ROLES)
-	if !exists {
-		return nil, fmt.Errorf("tenant roles not found in context")
-	}
-
-	roles, ok := rolesInterface.([]string)
-	if !ok {
-		return nil, fmt.Errorf("invalid tenant roles type in context")
-	}
-
-	return roles, nil
-}
-
-// HasTenantRole checks if the user has a specific role in the current tenant
-func HasTenantRole(c *gin.Context, requiredRole string) bool {
-	roles, err := GetUserTenantRoles(c)
-	if err != nil {
-		return false
-	}
-
-	for _, role := range roles {
-		if role == string(requiredRole) {
-			return true
-		}
-	}
-	return false
-}
-
-// HasAnyTenantRole checks if the user has any of the specified roles
-func HasAnyTenantRole(c *gin.Context, requiredRoles ...string) bool {
-	roles, err := GetUserTenantRoles(c)
-	if err != nil {
-		return false
-	}
-
-	for _, role := range roles {
-		for _, required := range requiredRoles {
-			if role == string(required) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// HasMinimumTenantRole checks if the user has at least the specified role level
-// in the current tenant. Note: only CUSTOMER_ADMIN/USER ever appear in tenant
-// roles (ADMIN/SUPER_ADMIN are global), so passing those higher ranks here will
-// always return false — use IsAdmin / IsSuperAdmin for global checks instead.
-func HasMinimumTenantRole(c *gin.Context, minimumRole string) bool {
-	roles, err := GetUserTenantRoles(c)
-	if err != nil {
-		return false
-	}
-
-	minimumLevel := GetRoleLevel(minimumRole)
-
-	for _, role := range roles {
-		if GetRoleLevel(role) >= minimumLevel {
-			return true
-		}
-	}
-	return false
-}
-
 // GetRoleLevel returns the privilege ranking of a role. Higher = more permissions.
 // The ranking is scope-agnostic: SUPER_ADMIN and ADMIN are global roles, CUSTOMER_ADMIN
 // and USER are tenant-scoped, but they're all comparable for "is this role at least
@@ -211,22 +143,4 @@ func GetRoleLevel(role string) int {
 	default:
 		return 0
 	}
-}
-
-// IsTenantCustomerAdmin checks if the user is a CUSTOMER_ADMIN of the current tenant
-func IsTenantCustomerAdmin(c *gin.Context) bool {
-	rolesInterface, exists := c.Get(CONTEXT_KEY_TENANT_ROLES)
-	if !exists {
-		return false
-	}
-	roles, ok := rolesInterface.([]string)
-	if !ok {
-		return false
-	}
-	for _, role := range roles {
-		if role == string(core.CUSTOMERADMIN) {
-			return true
-		}
-	}
-	return false
 }

@@ -36,22 +36,6 @@ type AccessScope struct {
 	IsolateByUser bool
 }
 
-// GetAccessScope reads the AccessScope set by the auth middleware. Returns
-// (zero, false) when the request is unauthenticated or pre-dates the
-// middleware change (e.g. some API-token paths). Callers should treat a
-// missing scope as "no isolation" — the conservative tenant-only default.
-func GetAccessScope(c *gin.Context) (AccessScope, bool) {
-	v, exists := c.Get(AUTH_ACCESS_SCOPE)
-	if !exists {
-		return AccessScope{}, false
-	}
-	scope, ok := v.(AccessScope)
-	if !ok {
-		return AccessScope{}, false
-	}
-	return scope, true
-}
-
 // TenantMembership represents a user's membership in a tenant with roles
 type TenantMembership struct {
 	TenantID string   `json:"tenant_id"`

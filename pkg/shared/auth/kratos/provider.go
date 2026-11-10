@@ -3,11 +3,12 @@ package kratos
 import (
 	"context"
 	"fmt"
-	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	appconfig "github.com/cto-up/core-lib/pkg/shared/config"
 
 	"github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
@@ -1249,16 +1250,6 @@ func (k *KratosAuthProvider) DisableWebAuthn(c *gin.Context) error {
 	}
 
 	return nil
-}
-
-// Helper function to check if slice contains string
-func containsString(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
 
 func (k *KratosTenantManager) AuthForTenant(ctx context.Context, tenantID string) (auth.AuthClient, error) {

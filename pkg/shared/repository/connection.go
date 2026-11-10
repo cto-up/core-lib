@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/cto-up/core-lib/pkg/shared/config"
 	"time"
+
+	"github.com/cto-up/core-lib/pkg/shared/config"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -56,14 +57,6 @@ func ConnectDB(connectionString string) (*sql.DB, error) {
 
 type IConnector interface {
 	Connect() (*pgxpool.Pool, error)
-}
-
-type ErrorConnector struct {
-}
-
-// Connect always throws error
-func (r ErrorConnector) Connect() (*pgxpool.Pool, error) {
-	return nil, fmt.Errorf("connect error")
 }
 
 type PostgresConnector struct {

@@ -18,16 +18,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// hasCustomerAdminRole returns true if the provided roles contain CUSTOMER_ADMIN.
-func hasCustomerAdminRole(roles []core.Role) bool {
-	for _, r := range roles {
-		if r == core.CUSTOMERADMIN {
-			return true
-		}
-	}
-	return false
-}
-
 // ADMIN and SUPER_ADMIN are global-only roles — granting them as a tenant
 // membership would let them pass /admin-api and /superadmin-api gates for
 // every tenant the user ever touches, breaking tenant isolation. Global
