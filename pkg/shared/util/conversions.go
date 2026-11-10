@@ -1,7 +1,6 @@
 package util
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -104,15 +103,6 @@ func getPresentType[T NullableTypes](value *T) any {
 type PgNullableTypes interface {
 	pgtype.Text | pgtype.Int4 | pgtype.Int8 | pgtype.Float4 | pgtype.Float8 |
 		pgtype.Bool | pgtype.Timestamp | pgtype.Date
-}
-
-// ToJSON converts an interface to a JSON string.
-func ToJSON(v interface{}) []byte {
-	bytes, err := json.Marshal(v)
-	if err != nil {
-		return []byte("")
-	}
-	return bytes
 }
 
 // FromNullable converts pgtype nullable types to pointers of Go primitive types.
