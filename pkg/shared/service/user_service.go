@@ -50,7 +50,6 @@ type UserService interface {
 	AddUserToTenant(c context.Context, authClient auth.AuthClient, tenantID, userID string, roles []core.Role, invitedBy string) error
 
 	// Callbacks
-	SetUserCreatedCallback(callback UserCreatedCallback)
 	SetUserSignedUpCallback(callback UserSignedUpCallback)
 	GetUserSignedUpCallback() UserSignedUpCallback
 	SetUserAddedToTenantCallback(callback UserAddedToTenantCallback)
@@ -60,7 +59,6 @@ type UserService interface {
 
 type BaseUserService struct {
 	store               *db.Store
-	onUserCreated       UserCreatedCallback
 	onUserSignedUp      UserSignedUpCallback
 	onUserAddedToTenant UserAddedToTenantCallback
 }
@@ -120,11 +118,6 @@ func (uh *BaseUserService) GetUserByEmailGlobal(c context.Context, email string)
 	}
 
 	return user, nil
-}
-
-// SetUserCreatedCallback sets an optional callback function that will be called after a user is successfully created.
-func (uh *BaseUserService) SetUserCreatedCallback(callback UserCreatedCallback) {
-	uh.onUserCreated = callback
 }
 
 // SetUserSignedUpCallback sets an optional callback function that will be called

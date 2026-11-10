@@ -157,14 +157,9 @@ func (uh *SharedUserService) CreateUser(c context.Context, authClient auth.AuthC
 		return user, err
 	}
 
-	// Call the optional callbacks if set. UserCreatedCallback fires for every
-	// new user. UserAddedToTenantCallback also fires here because CreateUser
-	// implicitly creates a membership; downstream listeners that need to seed
-	// per-tenant state can hook just that callback and cover both creation
-	// and AddUserToTenant flows uniformly.
-	if uh.onUserCreated != nil {
-		uh.onUserCreated(c, tenantId, user)
-	}
+	// UserAddedToTenantCallback fires here because CreateUser implicitly
+	// creates a membership, so one hook covers both creation and
+	// AddUserToTenant flows.
 	if uh.onUserAddedToTenant != nil {
 		uh.onUserAddedToTenant(c, tenantId, user)
 	}

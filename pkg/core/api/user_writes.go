@@ -67,7 +67,6 @@ func (o *userOps) addUser(c *gin.Context, scope TenantScope) {
 	}
 
 	silent := req.Silent != nil && *req.Silent
-	MarkSilent(c, silent)
 
 	user, err := o.userService.CreateUser(c, client, target.id, req, nil)
 	if err != nil {

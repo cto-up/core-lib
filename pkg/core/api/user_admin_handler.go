@@ -355,7 +355,6 @@ func (uh *UserAdminHandler) ImportUsersFromAdmin(c *gin.Context) {
 				silentTrue := true
 				req.Silent = &silentTrue
 			}
-			MarkSilent(c, silent)
 
 			// check if user has rights to assign roles
 			if !auth.HasAdminPrivileges(c) {
@@ -453,4 +452,15 @@ func (uh *UserAdminHandler) ImportUsersFromAdmin(c *gin.Context) {
 		}
 	})
 	// Commit transaction if there were successful imports
+}
+
+// parseBoolFlag converts a CSV cell to a boolean. Accepts y/yes/true/1
+// (case-insensitive, surrounding whitespace tolerated). Anything else,
+// including empty, is false.
+func parseBoolFlag(s string) bool {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "y", "yes", "true", "1":
+		return true
+	}
+	return false
 }
