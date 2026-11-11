@@ -44,6 +44,9 @@ func init() {
 }
 
 // KratosAuthProvider implements AuthProvider for Ory Kratos
+// myTenantsPath lists the caller's own memberships (MeService.listMyTenants).
+const myTenantsPath = "/api/v1/users/me/tenants"
+
 type KratosAuthProvider struct {
 	adminClient        *ory.APIClient
 	publicClient       *ory.APIClient
@@ -229,6 +232,13 @@ func (k *KratosAuthProvider) verifyCredentialWithTenantID(ctx context.Context, t
 				}
 			}
 		}
+	}
+
+	// A signed-in non-member may still list their own organizations, so the app
+	// can send them to one instead of a dead end. The user carries no tenant
+	// claim, so every other route stays closed.
+	if ok && path == myTenantsPath {
+		return user, nil
 	}
 
 	return user, fmt.Errorf("User with userID %s, not allowed for tenantID %s .", user.UserID, tenantID)
