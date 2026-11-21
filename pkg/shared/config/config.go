@@ -46,6 +46,16 @@ type Config struct {
 	Seed     Seed
 	Sentry   Sentry
 	Storage  Storage
+	Network  Network
+}
+
+// Network is how this process tells a client from the proxy in front of it.
+type Network struct {
+	// TrustedProxies lists, comma-separated, the addresses or CIDR ranges of
+	// the reverse proxies that connect to this process, as the process sees
+	// them. Only a request from one of them may name the client in X-Real-IP.
+	// Empty means DefaultTrustedProxies.
+	TrustedProxies string
 }
 
 // Database is the one Postgres this process talks to. Required: there is no

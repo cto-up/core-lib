@@ -54,6 +54,9 @@ func FromEnv() Config {
 			// choice, not a silent change — see Storage.BootstrapBucket.
 			BootstrapBucket: true,
 		},
+		Network: Network{
+			TrustedProxies: os.Getenv("TRUSTED_PROXIES"),
+		},
 		SMTP: SMTP{
 			Host:     os.Getenv("SMTP_HOST"),
 			Port:     os.Getenv("SMTP_PORT"),

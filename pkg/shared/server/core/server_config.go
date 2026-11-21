@@ -138,6 +138,14 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 	// would mean two access logs, one of which is unreachable. Recovery is kept
 	// verbatim — dropping it would turn a handler panic into a dead connection.
 	router := gin.New()
+	trusted, trustErr := sharedconfig.TrustedProxies()
+	if trustErr == nil {
+		trustErr = TrustClientIPFrom(router, trusted)
+	}
+	if trustErr != nil {
+		log.Fatal().Err(trustErr).Msg("Refusing to start: the trusted proxies are invalid")
+	}
+	log.Info().Strs("trustedProxies", trusted).Msg("Client IP: X-Real-IP is read only from these peers")
 
 	// RED metrics go on GIN'S OWN CHAIN, deliberately — not into the
 	// APIOptions.Middlewares list below with the other cross-cutting concerns.
