@@ -15,6 +15,7 @@ import (
 	// [DO NOT REMOVE COMMENT - Import]
 	"github.com/cto-up/core-lib/pkg/core/db"
 	coreservice "github.com/cto-up/core-lib/pkg/core/service"
+	"github.com/cto-up/core-lib/pkg/shared/activity"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
 	_ "github.com/cto-up/core-lib/pkg/shared/auth/kratos"
 	sharedconfig "github.com/cto-up/core-lib/pkg/shared/config"
@@ -264,6 +265,7 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 	// Core's own rows under the member's data-protection rights, for every app.
 	service.RegisterUserDataContributor(coreservice.NewEmailDeliveriesContributor(coreStore))
 	service.RegisterUserDataContributor(coreservice.NewActivityContributor(coreStore))
+	activity.RegisterKind(service.APITokenKind{})
 
 	// Configure middleware order based on provider type
 	var middlewares []core.MiddlewareFunc

@@ -14,7 +14,7 @@ import (
 
 type CoreActivity struct {
 	ID         uuid.UUID   `json:"id"`
-	TenantID   string      `json:"tenant_id"`
+	TenantID   pgtype.Text `json:"tenant_id"`
 	OccurredAt time.Time   `json:"occurred_at"`
 	ActorID    pgtype.Text `json:"actor_id"`
 	ActorName  pgtype.Text `json:"actor_name"`
@@ -47,16 +47,6 @@ type CoreApiToken struct {
 	UpdatedAt           time.Time          `json:"updated_at"`
 	LastUsedAt          pgtype.Timestamptz `json:"last_used_at"`
 	LastUsedIp          pgtype.Text        `json:"last_used_ip"`
-}
-
-type CoreApiTokenAuditLog struct {
-	ID             uuid.UUID   `json:"id"`
-	TokenID        uuid.UUID   `json:"token_id"`
-	Action         string      `json:"action"`
-	IpAddress      pgtype.Text `json:"ip_address"`
-	UserAgent      pgtype.Text `json:"user_agent"`
-	Timestamp      time.Time   `json:"timestamp"`
-	AdditionalData []byte      `json:"additional_data"`
 }
 
 type CoreClientApplication struct {

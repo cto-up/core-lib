@@ -11,9 +11,12 @@ import (
 
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/access"
+	"github.com/cto-up/core-lib/pkg/shared/activity"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -277,37 +280,28 @@ func (s *ClientApplicationService) CreateAPIToken(ctx *gin.Context, clientApplic
 		scopesArray = scopes
 	}
 
-	apiToken, err := s.store.CreateAPIToken(ctx, repository.CreateAPITokenParams{
-		ClientApplicationID: clientApplicationID,
-		Name:                name,
-		Description:         pgtype.Text{String: description, Valid: true},
-		TokenHash:           tokenHash,
-		TokenPrefix:         tokenPrefix,
-		ExpiresAt:           expiryTime,
-		CreatedBy:           createdBy,
-		Scopes:              scopesArray,
+	// The token and its "created" row commit together (office#200).
+	var apiToken repository.CoreApiToken
+	err = s.inTx(ctx, func(q *repository.Queries, tx pgx.Tx) error {
+		created, err := q.CreateAPIToken(ctx, repository.CreateAPITokenParams{
+			ClientApplicationID: clientApplicationID,
+			Name:                name,
+			Description:         pgtype.Text{String: description, Valid: true},
+			TokenHash:           tokenHash,
+			TokenPrefix:         tokenPrefix,
+			ExpiresAt:           expiryTime,
+			CreatedBy:           createdBy,
+			Scopes:              scopesArray,
+		})
+		if err != nil {
+			return err
+		}
+		apiToken = created
+		return recordToken(ctx.Request.Context(), tx, tenantID, TokenAuditCreated, created.ID, clientApplicationID, ctx.ClientIP(), ctx.GetHeader("User-Agent"))
 	})
-
 	if err != nil {
 		logger.Err(err).Str("clientApplicationID", clientApplicationID.String()).Msg("Failed to create API token")
 		return "", repository.CoreApiToken{}, err
-	}
-
-	// Create audit log entry
-	ipAddress := ctx.ClientIP()
-	userAgent := ctx.GetHeader("User-Agent")
-
-	_, err = s.store.CreateAPITokenAuditLog(ctx, repository.CreateAPITokenAuditLogParams{
-		TokenID:        apiToken.ID,
-		Action:         TokenAuditCreated,
-		IpAddress:      pgtype.Text{String: ipAddress, Valid: true},
-		UserAgent:      pgtype.Text{String: userAgent, Valid: true},
-		AdditionalData: nil,
-	})
-
-	if err != nil {
-		logger.Warn().Err(err).Str("tokenID", apiToken.ID.String()).Msg("Failed to create audit log for token creation")
-		// Don't fail the token creation if audit log fails
 	}
 
 	// Update the client application's last used timestamp
@@ -412,33 +406,23 @@ func (s *ClientApplicationService) RevokeAPIToken(ctx *gin.Context, id uuid.UUID
 		return repository.CoreApiToken{}, fmt.Errorf("token is already revoked")
 	}
 
-	// Revoke token
-	revokedToken, err := s.store.RevokeAPIToken(ctx, repository.RevokeAPITokenParams{
-		ID:            id,
-		RevokedReason: pgtype.Text{String: reason, Valid: true},
-		RevokedBy:     pgtype.Text{String: revokedBy, Valid: true},
+	// The revocation and its row commit together (office#200).
+	var revokedToken repository.CoreApiToken
+	err = s.inTx(ctx, func(q *repository.Queries, tx pgx.Tx) error {
+		revoked, err := q.RevokeAPIToken(ctx, repository.RevokeAPITokenParams{
+			ID:            id,
+			RevokedReason: pgtype.Text{String: reason, Valid: true},
+			RevokedBy:     pgtype.Text{String: revokedBy, Valid: true},
+		})
+		if err != nil {
+			return err
+		}
+		revokedToken = revoked
+		return recordToken(ctx.Request.Context(), tx, tenantID, TokenAuditRevoked, id, revoked.ClientApplicationID, ctx.ClientIP(), ctx.GetHeader("User-Agent"))
 	})
-
 	if err != nil {
 		logger.Err(err).Str("id", id.String()).Msg("Failed to revoke API token")
 		return repository.CoreApiToken{}, err
-	}
-
-	// Create audit log entry
-	ipAddress := ctx.ClientIP()
-	userAgent := ctx.GetHeader("User-Agent")
-
-	_, err = s.store.CreateAPITokenAuditLog(ctx, repository.CreateAPITokenAuditLogParams{
-		TokenID:        id,
-		Action:         TokenAuditRevoked,
-		IpAddress:      pgtype.Text{String: ipAddress, Valid: true},
-		UserAgent:      pgtype.Text{String: userAgent, Valid: true},
-		AdditionalData: nil,
-	})
-
-	if err != nil {
-		logger.Err(err).Str("tokenID", id.String()).Msg("Failed to create audit log for token revocation")
-		// Don't fail the revocation if audit log fails
 	}
 
 	return revokedToken, nil
@@ -457,20 +441,17 @@ func (s *ClientApplicationService) DeleteAPIToken(ctx context.Context, id uuid.U
 	return nil
 }
 
-// GetAPITokenAuditLogs retrieves audit logs for an API token
-func (s *ClientApplicationService) GetAPITokenAuditLogs(ctx context.Context, tokenID uuid.UUID, limit, offset int32) ([]repository.CoreApiTokenAuditLog, error) {
-	logger := util.GetLoggerFromCtx(ctx)
-	logs, err := s.store.GetAPITokenAuditLogs(ctx, repository.GetAPITokenAuditLogsParams{
-		TokenID: tokenID,
-		Limit:   limit,
-		Offset:  offset,
+// GetAPITokenAuditLogs is a token's created, used and revoked rows from the
+// activity log (office#200), newest first; tenantID "" is a global application.
+func (s *ClientApplicationService) GetAPITokenAuditLogs(ctx context.Context, tenantID string, tokenID uuid.UUID, limit, offset int32) ([]activity.Entry, error) {
+	logs, err := activity.ListTenant(ctx, s.store.ConnPool, tenantID, activity.Query{
+		Target: &activity.Ref{Kind: KindAPIToken, ID: tokenID.String()}, Limit: int(limit), Offset: int(offset),
 	})
-
 	if err != nil {
+		logger := util.GetLoggerFromCtx(ctx)
 		logger.Err(err).Str("tokenID", tokenID.String()).Msg("Failed to get API token audit logs")
 		return nil, err
 	}
-
 	return logs, nil
 }
 
@@ -491,22 +472,16 @@ func (s *ClientApplicationService) VerifyAPIToken(ctx *gin.Context, tokenString 
 		return repository.GetAPITokenByHashRow{}, err
 	}
 
-	// Create audit log entry for token usage
-	ipAddress := ctx.ClientIP()
-	userAgent := ctx.GetHeader("User-Agent")
-
-	_, err = s.store.CreateAPITokenAuditLog(ctx, repository.CreateAPITokenAuditLogParams{
-		TokenID:        token.ID,
-		Action:         TokenAuditUsed,
-		IpAddress:      pgtype.Text{String: ipAddress, Valid: true},
-		UserAgent:      pgtype.Text{String: userAgent, Valid: true},
-		AdditionalData: nil,
+	// Each use is a row, as the token itself (no Principal exists yet: this
+	// runs inside the door). A failed row is logged; it never refuses the
+	// token, or an audit outage would lock every integration out.
+	used := access.WithPrincipal(ctx.Request.Context(), access.Principal{
+		TenantID: token.TenantID.String, UserID: token.CreatedBy, Door: access.DoorAPIKey, KeyID: token.ID.String(),
 	})
-
-	if err != nil {
-		logger.Err(err).Str("tokenID", token.ID.String()).Msg("Failed to create audit log for token usage")
-		// Don't fail the verification if audit log fails
+	if err := recordToken(used, s.store.ConnPool, token.TenantID.String, TokenAuditUsed, token.ID, token.ClientApplicationID, ctx.ClientIP(), ctx.GetHeader("User-Agent")); err != nil {
+		logger.Err(err).Str("tokenID", token.ID.String()).Msg("Failed to record the API token's use")
 	}
+	ipAddress := ctx.ClientIP()
 
 	// Update token last used
 	err = s.store.UpdateAPITokenLastUsed(ctx, repository.UpdateAPITokenLastUsedParams{

@@ -8,6 +8,7 @@ import (
 	core "github.com/cto-up/core-lib/api/openapi/core"
 	"github.com/cto-up/core-lib/pkg/core/db"
 	"github.com/cto-up/core-lib/pkg/core/db/repository"
+	"github.com/cto-up/core-lib/pkg/shared/activity"
 	"github.com/cto-up/core-lib/pkg/shared/auth"
 	access "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/cto-up/core-lib/pkg/shared/util"
@@ -177,22 +178,22 @@ func toAPITokenCreated(token string, apiToken repository.CoreApiToken) core.APIT
 }
 
 // Convert audit log to API model
-func toAPIAuditLog(auditLog repository.CoreApiTokenAuditLog) core.APITokenAuditLog {
+// toAPIAuditLog shows a token's activity row as the audit endpoint always
+// has (office#200).
+func toAPIAuditLog(e activity.Entry) core.APITokenAuditLog {
+	tokenID, _ := uuid.Parse(e.Target.ID)
 	result := core.APITokenAuditLog{
-		Id:        auditLog.ID,
-		TokenId:   auditLog.TokenID,
-		Action:    core.APITokenAuditLogAction(auditLog.Action),
-		Timestamp: auditLog.Timestamp,
+		Id:        e.ID,
+		TokenId:   tokenID,
+		Action:    core.APITokenAuditLogAction(access.TokenAuditAction(e.Action)),
+		Timestamp: e.OccurredAt,
 	}
-
-	if auditLog.IpAddress.Valid {
-		result.IpAddress = &auditLog.IpAddress.String
+	if v, ok := e.Changes["ip"][1].(string); ok {
+		result.IpAddress = &v
 	}
-
-	if auditLog.UserAgent.Valid {
-		result.UserAgent = &auditLog.UserAgent.String
+	if v, ok := e.Changes["userAgent"][1].(string); ok {
+		result.UserAgent = &v
 	}
-
 	return result
 }
 
@@ -751,7 +752,7 @@ func (h *ClientApplicationHandler) GetAPITokenAuditLogs(c *gin.Context, id uuid.
 	offset := (page - 1) * pageSize
 
 	// Get audit logs
-	logs, err := h.clientAppService.GetAPITokenAuditLogs(c, tokenId, pageSize, offset)
+	logs, err := h.clientAppService.GetAPITokenAuditLogs(c.Request.Context(), c.GetString(auth.AUTH_TENANT_ID_KEY), tokenId, pageSize, offset)
 	if err != nil {
 		logger.Err(err).Str("userID", userID.(string)).Str("tokenID", tokenId.String()).Msg("Failed to get API token audit logs")
 		c.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))

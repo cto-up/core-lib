@@ -6,7 +6,7 @@
 -- touch a row.
 CREATE TABLE core_activity (
     id          UUID NOT NULL DEFAULT gen_random_uuid(),
-    tenant_id   VARCHAR(64) NOT NULL,
+    tenant_id   VARCHAR(64), -- NULL: the platform (a global application's token)
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
     actor_id    VARCHAR,
     actor_name  VARCHAR(200),

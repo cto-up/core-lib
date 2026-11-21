@@ -68,44 +68,6 @@ func (q *Queries) CreateAPIToken(ctx context.Context, arg CreateAPITokenParams) 
 	return i, err
 }
 
-const createAPITokenAuditLog = `-- name: CreateAPITokenAuditLog :one
-INSERT INTO core_api_token_audit_logs (
-  token_id, action, ip_address, user_agent, additional_data
-) VALUES (
-  $1, $2, $3, $4, $5
-)
-RETURNING id, token_id, action, ip_address, user_agent, timestamp, additional_data
-`
-
-type CreateAPITokenAuditLogParams struct {
-	TokenID        uuid.UUID   `json:"token_id"`
-	Action         string      `json:"action"`
-	IpAddress      pgtype.Text `json:"ip_address"`
-	UserAgent      pgtype.Text `json:"user_agent"`
-	AdditionalData []byte      `json:"additional_data"`
-}
-
-func (q *Queries) CreateAPITokenAuditLog(ctx context.Context, arg CreateAPITokenAuditLogParams) (CoreApiTokenAuditLog, error) {
-	row := q.db.QueryRow(ctx, createAPITokenAuditLog,
-		arg.TokenID,
-		arg.Action,
-		arg.IpAddress,
-		arg.UserAgent,
-		arg.AdditionalData,
-	)
-	var i CoreApiTokenAuditLog
-	err := row.Scan(
-		&i.ID,
-		&i.TokenID,
-		&i.Action,
-		&i.IpAddress,
-		&i.UserAgent,
-		&i.Timestamp,
-		&i.AdditionalData,
-	)
-	return i, err
-}
-
 const deleteAPIToken = `-- name: DeleteAPIToken :one
 DELETE FROM core_api_tokens
 WHERE id = $1
@@ -116,48 +78,6 @@ func (q *Queries) DeleteAPIToken(ctx context.Context, id uuid.UUID) (uuid.UUID, 
 	row := q.db.QueryRow(ctx, deleteAPIToken, id)
 	err := row.Scan(&id)
 	return id, err
-}
-
-const getAPITokenAuditLogs = `-- name: GetAPITokenAuditLogs :many
-SELECT id, token_id, action, ip_address, user_agent, timestamp, additional_data FROM core_api_token_audit_logs
-WHERE token_id = $1
-ORDER BY timestamp DESC
-LIMIT $2
-OFFSET $3
-`
-
-type GetAPITokenAuditLogsParams struct {
-	TokenID uuid.UUID `json:"token_id"`
-	Limit   int32     `json:"limit"`
-	Offset  int32     `json:"offset"`
-}
-
-func (q *Queries) GetAPITokenAuditLogs(ctx context.Context, arg GetAPITokenAuditLogsParams) ([]CoreApiTokenAuditLog, error) {
-	rows, err := q.db.Query(ctx, getAPITokenAuditLogs, arg.TokenID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []CoreApiTokenAuditLog{}
-	for rows.Next() {
-		var i CoreApiTokenAuditLog
-		if err := rows.Scan(
-			&i.ID,
-			&i.TokenID,
-			&i.Action,
-			&i.IpAddress,
-			&i.UserAgent,
-			&i.Timestamp,
-			&i.AdditionalData,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getAPITokenByHash = `-- name: GetAPITokenByHash :one

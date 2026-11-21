@@ -47,7 +47,7 @@ VALUES ($1, $2::varchar,
 `
 
 type InsertActivityParams struct {
-	TenantID   string      `json:"tenant_id"`
+	TenantID   pgtype.Text `json:"tenant_id"`
 	ActorID    pgtype.Text `json:"actor_id"`
 	Via        string      `json:"via"`
 	KeyID      pgtype.Text `json:"key_id"`
@@ -82,7 +82,7 @@ const listActivity = `-- name: ListActivity :many
 SELECT a.id, a.occurred_at, a.actor_id, a.actor_name, a.via, a.key_id, a.action,
        a.target_kind, a.target_id, a.scope_kind, a.scope_id, a.changes
 FROM core_activity a
-WHERE a.tenant_id = $1
+WHERE a.tenant_id IS NOT DISTINCT FROM $1
   AND ($2::text IS NULL OR (a.target_kind = $2 AND a.target_id = $3))
   AND ($4::text IS NULL OR (a.scope_kind = $4 AND a.scope_id = $5))
   AND ($6::text IS NULL OR a.target_kind = $6)
@@ -91,13 +91,13 @@ WHERE a.tenant_id = $1
   AND ($9::timestamptz IS NULL OR a.occurred_at >= $9)
   AND ($10::timestamptz IS NULL OR a.occurred_at < $10)
   AND ($11::uuid IS NULL OR (a.occurred_at, a.id) <
-       (SELECT b.occurred_at, b.id FROM core_activity b WHERE b.tenant_id = $1 AND b.id = $11))
+       (SELECT b.occurred_at, b.id FROM core_activity b WHERE b.tenant_id IS NOT DISTINCT FROM $1 AND b.id = $11))
 ORDER BY a.occurred_at DESC, a.id DESC
-LIMIT $12
+LIMIT $13 OFFSET $12
 `
 
 type ListActivityParams struct {
-	TenantID   string             `json:"tenant_id"`
+	TenantID   pgtype.Text        `json:"tenant_id"`
 	TargetKind pgtype.Text        `json:"target_kind"`
 	TargetID   pgtype.Text        `json:"target_id"`
 	ScopeKind  pgtype.Text        `json:"scope_kind"`
@@ -108,6 +108,7 @@ type ListActivityParams struct {
 	FromAt     pgtype.Timestamptz `json:"from_at"`
 	ToAt       pgtype.Timestamptz `json:"to_at"`
 	Before     pgtype.UUID        `json:"before"`
+	RowOffset  int32              `json:"row_offset"`
 	RowLimit   int32              `json:"row_limit"`
 }
 
@@ -141,6 +142,7 @@ func (q *Queries) ListActivity(ctx context.Context, arg ListActivityParams) ([]L
 		arg.FromAt,
 		arg.ToAt,
 		arg.Before,
+		arg.RowOffset,
 		arg.RowLimit,
 	)
 	if err != nil {
@@ -175,7 +177,7 @@ func (q *Queries) ListActivity(ctx context.Context, arg ListActivityParams) ([]L
 }
 
 const listActivityByActor = `-- name: ListActivityByActor :many
-SELECT tenant_id, occurred_at, via, action, target_kind, target_id
+SELECT COALESCE(tenant_id, '')::text AS tenant_id, occurred_at, via, action, target_kind, target_id
 FROM core_activity
 WHERE actor_id = $1
 ORDER BY occurred_at DESC

@@ -89,18 +89,3 @@ SET
   last_used_at = NOW(),
   last_used_ip = sqlc.narg('ip_address')::varchar
 WHERE id = $1;
-
--- name: CreateAPITokenAuditLog :one
-INSERT INTO core_api_token_audit_logs (
-  token_id, action, ip_address, user_agent, additional_data
-) VALUES (
-  $1, $2, $3, $4, $5
-)
-RETURNING *;
-
--- name: GetAPITokenAuditLogs :many
-SELECT * FROM core_api_token_audit_logs
-WHERE token_id = $1
-ORDER BY timestamp DESC
-LIMIT $2
-OFFSET $3;

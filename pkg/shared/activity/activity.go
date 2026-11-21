@@ -36,7 +36,10 @@ type Ref struct {
 // optional, is what a feed lists it under and is checked for scope reads;
 // Changes holds small fields only, never a body.
 type Event struct {
+	// TenantID is required unless Platform: an event of no tenant (a global
+	// application's token) must say so.
 	TenantID string
+	Platform bool
 	Action   string
 	Target   Ref
 	Scope    *Ref
@@ -48,7 +51,7 @@ type Event struct {
 type DBTX = repository.DBTX
 
 var (
-	errNoTenant = errors.New("activity: an event needs a tenant")
+	errNoTenant = errors.New("activity: an event needs a tenant, or Platform and none")
 	errNoAction = errors.New("activity: an event needs an action and a target")
 )
 
@@ -59,7 +62,7 @@ const ViaUnknown = "unknown"
 // and door (DoorJob when there is none or it is a system one, ViaUnknown when
 // the door does not say), its key, and the request id.
 func Record(ctx context.Context, tx DBTX, e Event) error {
-	if e.TenantID == "" {
+	if (e.TenantID == "") != e.Platform {
 		return errNoTenant
 	}
 	if e.Action == "" || e.Target.Kind == "" || e.Target.ID == "" {
@@ -75,7 +78,7 @@ func Record(ctx context.Context, tx DBTX, e Event) error {
 	}
 	actor, via, key := who(ctx)
 	params := repository.InsertActivityParams{
-		TenantID: e.TenantID, ActorID: text(actor), Via: via, KeyID: text(key),
+		TenantID: text(e.TenantID), ActorID: text(actor), Via: via, KeyID: text(key),
 		Action: e.Action, TargetKind: e.Target.Kind, TargetID: e.Target.ID,
 		Changes: changes, RequestID: text(requestID(ctx)),
 	}
@@ -165,6 +168,8 @@ type Query struct {
 	To      *time.Time
 	Before  *uuid.UUID
 	Limit   int
+	// Offset pages by position, for the API-token audit endpoint's contract.
+	Offset int
 }
 
 // MaxLimit is the most rows a page holds.
@@ -194,10 +199,9 @@ func List(ctx context.Context, db DBTX, tenantID string, p access.Principal, q Q
 	return read(ctx, db, tenantID, Query{Target: q.Target, Scope: q.Scope, Before: q.Before, Limit: q.Limit})
 }
 
-// ListTenant reads the tenant's whole log: for tenant administrators, whom
-// the caller has checked.
+// ListTenant reads the tenant's whole log, or the platform's for tenantID "":
+// for administrators, whom the caller has checked.
 func ListTenant(ctx context.Context, db DBTX, tenantID string, q Query) ([]Entry, error) {
-	q.Target, q.Scope = nil, nil
 	return read(ctx, db, tenantID, q)
 }
 
@@ -207,8 +211,8 @@ func read(ctx context.Context, db DBTX, tenantID string, q Query) ([]Entry, erro
 		limit = MaxLimit
 	}
 	params := repository.ListActivityParams{
-		TenantID: tenantID, Kind: text(q.Kind), Action: text(q.Action), ActorID: text(q.ActorID),
-		RowLimit: int32(limit),
+		TenantID: text(tenantID), Kind: text(q.Kind), Action: text(q.Action), ActorID: text(q.ActorID),
+		RowLimit: int32(limit), RowOffset: int32(max(q.Offset, 0)),
 	}
 	if q.Target != nil {
 		params.TargetKind, params.TargetID = text(q.Target.Kind), text(q.Target.ID)
