@@ -263,6 +263,7 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 	}
 	// Core's own rows under the member's data-protection rights, for every app.
 	service.RegisterUserDataContributor(coreservice.NewEmailDeliveriesContributor(coreStore))
+	service.RegisterUserDataContributor(coreservice.NewActivityContributor(coreStore))
 
 	// Configure middleware order based on provider type
 	var middlewares []core.MiddlewareFunc

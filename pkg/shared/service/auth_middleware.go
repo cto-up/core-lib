@@ -95,7 +95,7 @@ func (am *AuthMiddleware) MiddlewareFunc() gin.HandlerFunc {
 				c.Set("api_token", tokenRow)
 				c.Set("api_token_scopes", tokenRow.Scopes)
 				c.Set(auth.AUTH_USER_ID, tokenRow.CreatedBy)
-				if err := am.setAPITokenPrincipal(c, tokenRow.TenantID.String, tokenRow.CreatedBy, tokenRow.Scopes); err != nil {
+				if err := am.setAPITokenPrincipal(c, tokenRow.TenantID.String, tokenRow.CreatedBy, tokenRow.Scopes, tokenRow.ID.String()); err != nil {
 					// Not a refusal: the token is valid and its roles are
 					// unknown, so the caller should retry, not rotate the token.
 					log.Err(err).Str("tenant_id", tokenRow.TenantID.String).Msg("api token: could not resolve the creator's roles")
@@ -185,6 +185,7 @@ func (am *AuthMiddleware) setAuthenticatedUser(c *gin.Context, user *auth.Authen
 		ActingReseller: user.IsActingReseller,
 		IsolateByUser:  isolate,
 		StepUpPossible: true,
+		Door:           access.DoorWeb,
 	}))
 }
 
@@ -196,7 +197,7 @@ func (am *AuthMiddleware) setAuthenticatedUser(c *gin.Context, user *auth.Authen
 //
 // A failed role read is returned rather than treated as "no roles": answering
 // 403 for a database outage tells the caller its token is wrong.
-func (am *AuthMiddleware) setAPITokenPrincipal(c *gin.Context, tenantID, createdBy string, scopes []string) error {
+func (am *AuthMiddleware) setAPITokenPrincipal(c *gin.Context, tenantID, createdBy string, scopes []string, tokenID string) error {
 	roles, isolate, err := access.ResolveRoles(c.Request.Context(), tenantID, createdBy)
 	if err != nil {
 		return fmt.Errorf("could not resolve the API token creator's roles: %w", err)
@@ -216,6 +217,8 @@ func (am *AuthMiddleware) setAPITokenPrincipal(c *gin.Context, tenantID, created
 		IsolateByUser: isolate,
 		Caps:          scopes,
 		AAL:           "aal1",
+		Door:          access.DoorAPIKey,
+		KeyID:         tokenID,
 	}))
 	return nil
 }

@@ -35,7 +35,7 @@ func TestAnAdminsAPITokenPassesARoleGate(t *testing.T) {
 	t.Cleanup(func() { access.InstallRoleResolver(nil) })
 
 	c := testCtx()
-	(&AuthMiddleware{}).setAPITokenPrincipal(c, "t1", "admin-1", []string{"read"})
+	(&AuthMiddleware{}).setAPITokenPrincipal(c, "t1", "admin-1", []string{"read"}, "tok-1")
 
 	if !auth.IsAdmin(c) {
 		t.Fatal("an admin's token was refused by auth.IsAdmin")
@@ -46,6 +46,9 @@ func TestAnAdminsAPITokenPassesARoleGate(t *testing.T) {
 	}
 	if p.UserID != "admin-1" || p.TenantID != "t1" || p.AAL != "aal1" || p.StepUpPossible {
 		t.Errorf("principal = %+v", p)
+	}
+	if p.Door != access.DoorAPIKey || p.KeyID != "tok-1" {
+		t.Errorf("an API token's door and key: %q %q", p.Door, p.KeyID)
 	}
 	if !p.Can("read") || p.Can("propose") {
 		t.Error("the token's own scopes are its caps")
@@ -59,7 +62,7 @@ func TestAFailedRoleReadIsNotNoRoles(t *testing.T) {
 	t.Cleanup(func() { access.InstallRoleResolver(nil) })
 
 	c := testCtx()
-	err := (&AuthMiddleware{}).setAPITokenPrincipal(c, "t1", "admin-1", nil)
+	err := (&AuthMiddleware{}).setAPITokenPrincipal(c, "t1", "admin-1", nil, "tok-1")
 	if err == nil {
 		t.Fatal("a failed role read was swallowed as \"no roles\"")
 	}
@@ -78,7 +81,7 @@ func TestAMembersAPITokenStaysUnprivileged(t *testing.T) {
 	t.Cleanup(func() { access.InstallRoleResolver(nil) })
 
 	c := testCtx()
-	(&AuthMiddleware{}).setAPITokenPrincipal(c, "t1", "member-1", nil)
+	(&AuthMiddleware{}).setAPITokenPrincipal(c, "t1", "member-1", nil, "tok-1")
 	if auth.IsAdmin(c) || auth.IsCustomerAdmin(c) || auth.IsSuperAdmin(c) {
 		t.Error("a member's token gained an admin role")
 	}

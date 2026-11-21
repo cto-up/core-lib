@@ -1,0 +1,49 @@
+get:
+  description: >
+    One thing's activity, or one scope's (a notebook, a board), newest first:
+    who did what, through which door (office#199). The kind that owns the
+    thing decides whether the caller may read it; otherwise 404, as for a
+    thing that does not exist. Exactly one of target or scope.
+  operationId: listActivity
+  parameters:
+    - name: targetKind
+      in: query
+      schema:
+        type: string
+    - name: targetId
+      in: query
+      schema:
+        type: string
+    - name: scopeKind
+      in: query
+      schema:
+        type: string
+    - name: scopeId
+      in: query
+      schema:
+        type: string
+    - name: before
+      in: query
+      description: the id of the last row of the previous page
+      schema:
+        type: string
+        format: uuid
+    - name: limit
+      in: query
+      description: at most 100
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: newest first
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../core-schema.yaml#/components/schemas/ActivityEntry"
+    "400":
+      description: neither or both of target and scope
+    "404":
+      description: the caller cannot read it, or its kind is unknown

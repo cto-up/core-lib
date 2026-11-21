@@ -653,6 +653,53 @@ components:
         - EmailDeliveryStatusAccepted
         - EmailDeliveryStatusRejected
         - EmailDeliveryStatusFailed
+    ActivityRef:
+      type: object
+      required: [kind, id]
+      properties:
+        kind:
+          type: string
+        id:
+          type: string
+
+    ActivityEntry:
+      type: object
+      required: [id, occurredAt, via, action, target]
+      properties:
+        id:
+          type: string
+          format: uuid
+        occurredAt:
+          type: string
+          format: date-time
+        actorId:
+          type: string
+          description: absent for a job, or once the person's account is deleted
+        actorName:
+          type: string
+          description: the person's name when they acted
+        via:
+          type: string
+          description: web, api_key, mcp, agent, voice, job or unknown
+        keyId:
+          type: string
+          description: the credential used, for api_key and mcp
+        action:
+          type: string
+          description: '"<kind>.<past tense>", e.g. "page.moved"'
+        target:
+          $ref: "#/components/schemas/ActivityRef"
+        scope:
+          $ref: "#/components/schemas/ActivityRef"
+        changes:
+          type: object
+          additionalProperties:
+            type: array
+            items: {}
+            minItems: 2
+            maxItems: 2
+          description: each changed field as [before, after]
+
     EmailDelivery:
       type: object
       required:

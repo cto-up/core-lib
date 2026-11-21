@@ -198,6 +198,12 @@ paths:
   /admin-api/v1/client-applications/{id}/tokens/{tokenId}/audit:
     $ref: "./parts/tokens/client-applications-id-tokens-id-audit-path.yaml"
 
+  # Activity log (office#199): one thing's or one scope's, and the tenant's (ADMIN)
+  /api/v1/activity:
+    $ref: "./parts/activity/activity-path.yaml"
+  /admin-api/v1/activity:
+    $ref: "./parts/admin/activity-path.yaml"
+
   # Personal-data access log (ADMIN & SUPER_ADMIN only)
   /admin-api/v1/personal-data-access:
     $ref: "./parts/admin/personal-data-access-path.yaml"

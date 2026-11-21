@@ -12,6 +12,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CoreActivity struct {
+	ID         uuid.UUID   `json:"id"`
+	TenantID   string      `json:"tenant_id"`
+	OccurredAt time.Time   `json:"occurred_at"`
+	ActorID    pgtype.Text `json:"actor_id"`
+	ActorName  pgtype.Text `json:"actor_name"`
+	Via        string      `json:"via"`
+	KeyID      pgtype.Text `json:"key_id"`
+	Action     string      `json:"action"`
+	TargetKind string      `json:"target_kind"`
+	TargetID   string      `json:"target_id"`
+	ScopeKind  pgtype.Text `json:"scope_kind"`
+	ScopeID    pgtype.Text `json:"scope_id"`
+	Changes    []byte      `json:"changes"`
+	RequestID  pgtype.Text `json:"request_id"`
+}
+
 type CoreApiToken struct {
 	ID                  uuid.UUID          `json:"id"`
 	ClientApplicationID uuid.UUID          `json:"client_application_id"`

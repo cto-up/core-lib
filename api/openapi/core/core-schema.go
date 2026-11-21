@@ -248,6 +248,37 @@ type AccountDeletionRequest struct {
 	Reason    *string                `json:"reason,omitempty"`
 }
 
+// ActivityEntry defines model for ActivityEntry.
+type ActivityEntry struct {
+	// Action "<kind>.<past tense>", e.g. "page.moved"
+	Action string `json:"action"`
+
+	// ActorId absent for a job, or once the person's account is deleted
+	ActorId *string `json:"actorId,omitempty"`
+
+	// ActorName the person's name when they acted
+	ActorName *string `json:"actorName,omitempty"`
+
+	// Changes each changed field as [before, after]
+	Changes *map[string][]interface{} `json:"changes,omitempty"`
+	Id      openapi_types.UUID        `json:"id"`
+
+	// KeyId the credential used, for api_key and mcp
+	KeyId      *string      `json:"keyId,omitempty"`
+	OccurredAt time.Time    `json:"occurredAt"`
+	Scope      *ActivityRef `json:"scope,omitempty"`
+	Target     ActivityRef  `json:"target"`
+
+	// Via web, api_key, mcp, agent, voice, job or unknown
+	Via string `json:"via"`
+}
+
+// ActivityRef defines model for ActivityRef.
+type ActivityRef struct {
+	Id   string `json:"id"`
+	Kind string `json:"kind"`
+}
+
 // BasicEntity defines model for BasicEntity.
 type BasicEntity struct {
 	Icon *string            `json:"icon,omitempty"`

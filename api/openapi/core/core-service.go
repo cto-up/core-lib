@@ -102,6 +102,28 @@ const (
 	UpdateUserStatusFromSuperAdminJSONBodyNameEMAILVERIFIED UpdateUserStatusFromSuperAdminJSONBodyName = "EMAIL_VERIFIED"
 )
 
+// ListTenantActivityParams defines parameters for ListTenantActivity.
+type ListTenantActivityParams struct {
+	// Kind only things of this kind, e.g. "page"
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// Action only this action, e.g. "page.moved"
+	Action  *string `form:"action,omitempty" json:"action,omitempty"`
+	ActorId *string `form:"actorId,omitempty" json:"actorId,omitempty"`
+
+	// From at or after
+	From *time.Time `form:"from,omitempty" json:"from,omitempty"`
+
+	// To before
+	To *time.Time `form:"to,omitempty" json:"to,omitempty"`
+
+	// Before the id of the last row of the previous page
+	Before *openapi_types.UUID `form:"before,omitempty" json:"before,omitempty"`
+
+	// Limit at most 100
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // ListClientApplicationsParams defines parameters for ListClientApplications.
 type ListClientApplicationsParams struct {
 	// Page page number
@@ -216,6 +238,20 @@ type ListPersonalDataAccessParams struct {
 
 	// PageSize maximum number of results to return (at most 100)
 	PageSize *int32 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+}
+
+// ListActivityParams defines parameters for ListActivity.
+type ListActivityParams struct {
+	TargetKind *string `form:"targetKind,omitempty" json:"targetKind,omitempty"`
+	TargetId   *string `form:"targetId,omitempty" json:"targetId,omitempty"`
+	ScopeKind  *string `form:"scopeKind,omitempty" json:"scopeKind,omitempty"`
+	ScopeId    *string `form:"scopeId,omitempty" json:"scopeId,omitempty"`
+
+	// Before the id of the last row of the previous page
+	Before *openapi_types.UUID `form:"before,omitempty" json:"before,omitempty"`
+
+	// Limit at most 100
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // ListTenantConfigsParams defines parameters for ListTenantConfigs.
@@ -725,6 +761,9 @@ type UpdateUserStatusFromSuperAdminJSONRequestBody UpdateUserStatusFromSuperAdmi
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /admin-api/v1/activity)
+	ListTenantActivity(c *gin.Context, params ListTenantActivityParams)
+
 	// (GET /admin-api/v1/client-applications)
 	ListClientApplications(c *gin.Context, params ListClientApplicationsParams)
 
@@ -784,6 +823,9 @@ type ServerInterface interface {
 	// What removing a member from the organization would cost them
 	// (GET /admin-api/v1/users/{userid}/leave-preview)
 	GetMemberLeavePreview(c *gin.Context, userid string)
+
+	// (GET /api/v1/activity)
+	ListActivity(c *gin.Context, params ListActivityParams)
 
 	// (GET /api/v1/configs/tenant-configs)
 	ListTenantConfigs(c *gin.Context, params ListTenantConfigsParams)
@@ -1094,6 +1136,80 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// ListTenantActivity operation middleware
+func (siw *ServerInterfaceWrapper) ListTenantActivity(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTenantActivityParams
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "kind", c.Request.URL.Query(), &params.Kind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter kind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "action" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "action", c.Request.URL.Query(), &params.Action)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter action: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "actorId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "actorId", c.Request.URL.Query(), &params.ActorId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter actorId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "before" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "before", c.Request.URL.Query(), &params.Before)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter before: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", c.Request.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListTenantActivity(c, params)
+}
 
 // ListClientApplications operation middleware
 func (siw *ServerInterfaceWrapper) ListClientApplications(c *gin.Context) {
@@ -1821,6 +1937,72 @@ func (siw *ServerInterfaceWrapper) GetMemberLeavePreview(c *gin.Context) {
 	}
 
 	siw.Handler.GetMemberLeavePreview(c, userid)
+}
+
+// ListActivity operation middleware
+func (siw *ServerInterfaceWrapper) ListActivity(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListActivityParams
+
+	// ------------- Optional query parameter "targetKind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "targetKind", c.Request.URL.Query(), &params.TargetKind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter targetKind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "targetId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "targetId", c.Request.URL.Query(), &params.TargetId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter targetId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "scopeKind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "scopeKind", c.Request.URL.Query(), &params.ScopeKind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter scopeKind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "scopeId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "scopeId", c.Request.URL.Query(), &params.ScopeId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter scopeId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "before" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "before", c.Request.URL.Query(), &params.Before)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter before: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", c.Request.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListActivity(c, params)
 }
 
 // ListTenantConfigs operation middleware
@@ -4489,6 +4671,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.GET(options.BaseURL+"/admin-api/v1/activity", wrapper.ListTenantActivity)
 	router.GET(options.BaseURL+"/admin-api/v1/client-applications", wrapper.ListClientApplications)
 	router.POST(options.BaseURL+"/admin-api/v1/client-applications", wrapper.CreateClientApplication)
 	router.DELETE(options.BaseURL+"/admin-api/v1/client-applications/:id", wrapper.DeleteClientApplication)
@@ -4509,6 +4692,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/admin-api/v1/users/:userid/export", wrapper.ExportMemberData)
 	router.POST(options.BaseURL+"/admin-api/v1/users/:userid/leave", wrapper.LeaveTenantForMember)
 	router.GET(options.BaseURL+"/admin-api/v1/users/:userid/leave-preview", wrapper.GetMemberLeavePreview)
+	router.GET(options.BaseURL+"/api/v1/activity", wrapper.ListActivity)
 	router.GET(options.BaseURL+"/api/v1/configs/tenant-configs", wrapper.ListTenantConfigs)
 	router.POST(options.BaseURL+"/api/v1/configs/tenant-configs", wrapper.AddTenantConfig)
 	router.DELETE(options.BaseURL+"/api/v1/configs/tenant-configs/:id", wrapper.DeleteTenantConfig)

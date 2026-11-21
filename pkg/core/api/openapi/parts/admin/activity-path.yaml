@@ -1,0 +1,53 @@
+get:
+  description: >
+    The host tenant's activity, every kind, newest first (office#199). Tenant
+    administrators only.
+  operationId: listTenantActivity
+  parameters:
+    - name: kind
+      in: query
+      description: only things of this kind, e.g. "page"
+      schema:
+        type: string
+    - name: action
+      in: query
+      description: only this action, e.g. "page.moved"
+      schema:
+        type: string
+    - name: actorId
+      in: query
+      schema:
+        type: string
+    - name: from
+      in: query
+      description: at or after
+      schema:
+        type: string
+        format: date-time
+    - name: to
+      in: query
+      description: before
+      schema:
+        type: string
+        format: date-time
+    - name: before
+      in: query
+      description: the id of the last row of the previous page
+      schema:
+        type: string
+        format: uuid
+    - name: limit
+      in: query
+      description: at most 100
+      schema:
+        type: integer
+        format: int32
+  responses:
+    "200":
+      description: newest first
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../../core-schema.yaml#/components/schemas/ActivityEntry"

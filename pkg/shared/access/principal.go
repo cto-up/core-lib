@@ -37,7 +37,23 @@ type Principal struct {
 
 	// System marks an internal job. Set explicitly, never defaulted.
 	System bool
+
+	// Door is the way in the call came through (DoorWeb, DoorAPIKey, …), and
+	// KeyID the credential's id when it has one: what an activity row records
+	// as "how" (core ADR on the activity log). Empty when a door predates it.
+	Door  string
+	KeyID string
 }
+
+// Doors a call comes through.
+const (
+	DoorWeb    = "web"
+	DoorAPIKey = "api_key"
+	DoorMCP    = "mcp"
+	DoorAgent  = "agent"
+	DoorVoice  = "voice"
+	DoorJob    = "job"
+)
 
 const (
 	RoleSuperAdmin    = "SUPER_ADMIN"
