@@ -1,7 +1,8 @@
 package service
 
+import "context"
+
 import (
-	"context"
 	"sync"
 
 	"github.com/cto-up/core-lib/pkg/core/db"
