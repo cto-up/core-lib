@@ -14,16 +14,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// DevSeedPassword is the published local-dev admin password (office .env.dev).
-const DevSeedPassword = "Password123"
-
 // ErrDevSeedPassword stops a deployment that would seed the published dev
 // password: anyone who has read the README could log in as its super admin.
 var ErrDevSeedPassword = errors.New("refusing the dev seed password outside APP_ENV=dev")
 
 // checkSeedPassword refuses the dev password unless APP_ENV=dev.
 func checkSeedPassword(seed config.Seed) error {
-	if seed.UserPassword == DevSeedPassword && seed.AppEnv != "dev" {
+	if seed.AppEnv != "dev" && config.IsDevValue("SEED_USER_PASSWORD", seed.UserPassword) {
 		return ErrDevSeedPassword
 	}
 	return nil

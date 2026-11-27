@@ -11,7 +11,7 @@ func TestSeedRefusesTheDevPasswordOutsideDev(t *testing.T) {
 	t.Cleanup(func() { config.Set(config.Config{}) })
 	for _, appEnv := range []string{"", "prod", "preprod"} {
 		config.Set(config.Config{Seed: config.Seed{
-			UserEmail: "admin@ctoup.localhost", UserPassword: DevSeedPassword, AppEnv: appEnv,
+			UserEmail: "admin@ctoup.localhost", UserPassword: config.DevSeedPassword, AppEnv: appEnv,
 		}})
 		// No store and no auth client: the refusal comes before either is touched.
 		err := (&SeedService{}).Seed()
@@ -23,7 +23,7 @@ func TestSeedRefusesTheDevPasswordOutsideDev(t *testing.T) {
 
 func TestCheckSeedPasswordAllowsDevOrAnotherPassword(t *testing.T) {
 	cases := []config.Seed{
-		{UserPassword: DevSeedPassword, AppEnv: "dev"},
+		{UserPassword: config.DevSeedPassword, AppEnv: "dev"},
 		{UserPassword: "a-real-password", AppEnv: ""},
 		{UserPassword: "a-real-password", AppEnv: "prod"},
 	}
