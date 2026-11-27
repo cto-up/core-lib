@@ -123,6 +123,17 @@ func (q *Queries) AddSharedUserToTenant(ctx context.Context, arg AddSharedUserTo
 	return i, err
 }
 
+const anyUserExists = `-- name: AnyUserExists :one
+SELECT EXISTS (SELECT 1 FROM core_users)
+`
+
+func (q *Queries) AnyUserExists(ctx context.Context) (bool, error) {
+	row := q.db.QueryRow(ctx, anyUserExists)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const cancelUserDeletion = `-- name: CancelUserDeletion :one
 UPDATE core_users
 SET deletion_requested_at = NULL,

@@ -1,3 +1,6 @@
+-- name: AnyUserExists :one
+SELECT EXISTS (SELECT 1 FROM core_users);
+
 -- name: GetSharedUserByID :one
 SELECT * FROM core_users
 WHERE id = $1

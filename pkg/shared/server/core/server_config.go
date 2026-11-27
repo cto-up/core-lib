@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/cto-up/core-lib/api/handlers"
@@ -316,7 +317,9 @@ func initializeServerConfig(connPool *pgxpool.Pool, cors gin.HandlerFunc, additi
 
 	// Seed
 	seedService := seedservice.NewSeedService(coreStore, authProvider)
-	seedService.Seed()
+	if err := seedService.Seed(); errors.Is(err, seedservice.ErrDevSeedPassword) {
+		log.Fatal().Err(err).Msg("Refusing to start")
+	}
 
 	handlers := handlers.CreateCoreHandlers(connPool, authProvider, multiTenantService, clientAppService)
 

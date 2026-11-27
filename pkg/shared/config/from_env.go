@@ -36,6 +36,7 @@ func FromEnv() Config {
 		Seed: Seed{
 			UserEmail:    os.Getenv("SEED_USER_EMAIL"),
 			UserPassword: os.Getenv("SEED_USER_PASSWORD"),
+			AppEnv:       os.Getenv("APP_ENV"),
 		},
 		Sentry: Sentry{
 			DSN:              os.Getenv("SENTRY_DSN"),

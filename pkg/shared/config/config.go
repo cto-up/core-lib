@@ -79,6 +79,9 @@ type Kratos struct {
 type Seed struct {
 	UserEmail    string
 	UserPassword string
+	// AppEnv is APP_ENV. The well-known dev password is refused unless it is
+	// "dev", so it can never be seeded into a deployed environment.
+	AppEnv string
 }
 
 // Sentry is error and trace reporting. Empty DSN disables it entirely, which is

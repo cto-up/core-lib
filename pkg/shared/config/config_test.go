@@ -82,6 +82,7 @@ func TestFromEnvKeepsTheNamesDeploymentsAlreadyUse(t *testing.T) {
 	t.Setenv("SMTP_PORT", "587")
 	t.Setenv("SMTP_USERNAME", "mailer")
 	t.Setenv("SMTP_PASSWORD", "secret")
+	t.Setenv("APP_ENV", "dev")
 
 	c := config.FromEnv()
 	assert.Equal(t, "acme.test", c.Site.Domain)
@@ -90,6 +91,7 @@ func TestFromEnvKeepsTheNamesDeploymentsAlreadyUse(t *testing.T) {
 	assert.Equal(t, "587", c.SMTP.Port)
 	assert.Equal(t, "mailer", c.SMTP.Username)
 	assert.Equal(t, "secret", c.SMTP.Password)
+	assert.Equal(t, "dev", c.Seed.AppEnv)
 }
 
 // The guard. core-lib is the library every other one mounts into, and it

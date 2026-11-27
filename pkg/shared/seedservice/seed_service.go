@@ -2,6 +2,7 @@ package seedservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cto-up/core-lib/pkg/shared/config"
 
@@ -12,6 +13,21 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/rs/zerolog/log"
 )
+
+// DevSeedPassword is the published local-dev admin password (office .env.dev).
+const DevSeedPassword = "Password123"
+
+// ErrDevSeedPassword stops a deployment that would seed the published dev
+// password: anyone who has read the README could log in as its super admin.
+var ErrDevSeedPassword = errors.New("refusing the dev seed password outside APP_ENV=dev")
+
+// checkSeedPassword refuses the dev password unless APP_ENV=dev.
+func checkSeedPassword(seed config.Seed) error {
+	if seed.UserPassword == DevSeedPassword && seed.AppEnv != "dev" {
+		return ErrDevSeedPassword
+	}
+	return nil
+}
 
 type SeedService struct {
 	store  *db.Store
@@ -50,9 +66,22 @@ func (ss *SeedService) Seed() error {
 		fmt.Println("No SEED_USER_PASSWORD")
 		return nil
 	}
+	if err := checkSeedPassword(seed); err != nil {
+		return err
+	}
 	userEmail, userPassword := seed.UserEmail, seed.UserPassword
 
 	c := context.Background()
+
+	// Only a fresh database is seeded: an existing user, and its password,
+	// are never touched.
+	anyUser, err := ss.store.Queries.AnyUserExists(c)
+	if err != nil {
+		return fmt.Errorf("checking for existing users: %w", err)
+	}
+	if anyUser {
+		return nil
+	}
 
 	tx, err := ss.store.ConnPool.Begin(c)
 	if err != nil {
