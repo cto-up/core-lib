@@ -15,7 +15,6 @@ import (
 	"github.com/cto-up/core-lib/pkg/core/db"
 	auth "github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/cto-up/core-lib/pkg/shared/event"
-	access "github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 )
@@ -29,20 +28,10 @@ type UserAdminHandler struct {
 }
 
 func NewUserAdminHandler(store *db.Store, authProvider auth.AuthProvider) *UserAdminHandler {
-
-	factory := access.NewUserServiceStrategyFactory()
-	userService := factory.CreateUserServiceStrategy(store, authProvider)
-
-	// Try to initialize user event callback if available
-	// This allows the realtime module to set up the callback for user creation events
-	if initFunc := access.GetUserEventInitFunc(); initFunc != nil {
-		initFunc(userService)
-	}
-
 	return &UserAdminHandler{userOps{
 		store:        store,
 		authProvider: authProvider,
-		userService:  userService,
+		userService:  newUserService(store, authProvider),
 	}}
 }
 
@@ -128,6 +117,10 @@ func (uh *UserAdminHandler) ResetPasswordRequestByAdmin(c *gin.Context, userID s
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Only admin or super admin can reset password"})
 		return
 	}
+	subdomain, ok := requestSubdomain(c)
+	if !ok {
+		return
+	}
 
 	user, err := uh.userService.GetUserByTenantIDByID(c, tenantID.(string), userID)
 	if err != nil {
@@ -148,28 +141,17 @@ func (uh *UserAdminHandler) ResetPasswordRequestByAdmin(c *gin.Context, userID s
 		c.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
 		return
 	}
-
-	subdomain, err := util.GetSubdomain(c)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
-		return
-	}
-
 	baseAuthClient, err := uh.authProvider.GetAuthClientForSubdomain(c, subdomain)
 	if err != nil {
 		logger.Err(err).Msg("Failed to get auth client for subdomain")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get auth client"})
 		return
 	}
-
-	err = resetPasswordRequest(c, baseAuthClient, url, req.Email)
-	if err != nil {
+	if err := resetPasswordRequest(c, baseAuthClient, url, req.Email); err != nil {
 		logger.Err(err).Msg("Failed to send password reset email")
 		c.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
 }
 
@@ -192,6 +174,10 @@ func (uh *UserAdminHandler) AddUserMembership(c *gin.Context, userid string) {
 
 func (uh *UserAdminHandler) ImportUsersFromAdmin(c *gin.Context) {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
+	subdomain, ok := requestSubdomain(c)
+	if !ok {
+		return
+	}
 	tenantID, exists := c.Get(auth.AUTH_TENANT_ID_KEY)
 	if !exists {
 		logger.Error().Msg("TenantID not found")
@@ -200,13 +186,6 @@ func (uh *UserAdminHandler) ImportUsersFromAdmin(c *gin.Context) {
 	}
 
 	// Get auth client for tenant
-	subdomain, err := util.GetSubdomain(c)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
-		return
-	}
-
 	baseAuthClient, err := uh.authProvider.GetAuthClientForSubdomain(c, subdomain)
 	if err != nil {
 		logger.Err(err).Msg("Failed to get auth client for subdomain")

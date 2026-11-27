@@ -35,15 +35,7 @@ type UserHandler struct {
 }
 
 func NewUserHandler(store *db.Store, authProvider auth.AuthProvider) *UserHandler {
-	factory := access.NewUserServiceStrategyFactory()
-	userService := factory.CreateUserServiceStrategy(store, authProvider)
-
-	// Try to initialize user event callback if available
-	// This allows the realtime module to set up the callback for user creation events
-	if initFunc := access.GetUserEventInitFunc(); initFunc != nil {
-		initFunc(userService)
-	}
-
+	userService := newUserService(store, authProvider)
 	emailVerificationService := service.NewEmailVerificationService(store, authProvider)
 	fileService := fileservice.NewFileService()
 	handler := &UserHandler{
@@ -54,6 +46,29 @@ func NewUserHandler(store *db.Store, authProvider auth.AuthProvider) *UserHandle
 		emailVerificationService: emailVerificationService,
 	}
 	return handler
+}
+
+// newUserService builds the user service both user handlers share and hands
+// it to the user-event hook a host may register (the realtime module does).
+func newUserService(store *db.Store, authProvider auth.AuthProvider) access.UserService {
+	userService := access.NewUserServiceStrategyFactory().CreateUserServiceStrategy(store, authProvider)
+	if hook := access.GetUserEventInitFunc(); hook != nil {
+		hook(userService)
+	}
+	return userService
+}
+
+// requestSubdomain answers 400 when the request host cannot be parsed, so a
+// caller only returns on false.
+func requestSubdomain(c *gin.Context) (string, bool) {
+	subdomain, err := util.GetSubdomain(c)
+	if err != nil {
+		logger := util.GetLoggerFromCtx(c.Request.Context())
+		logger.Err(err).Msg("Failed to get subdomain")
+		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
+		return "", false
+	}
+	return subdomain, true
 }
 
 func getProfilePictureFilePath(userId any) string {
@@ -260,6 +275,10 @@ func (s *UserHandler) GetProfilePicture(c *gin.Context, userId string, params co
 
 func (uh *UserHandler) ResetPasswordRequest(c *gin.Context) {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
+	subdomain, ok := requestSubdomain(c)
+	if !ok {
+		return
+	}
 	var req struct {
 		Email string `json:"email"`
 	}
@@ -268,15 +287,7 @@ func (uh *UserHandler) ResetPasswordRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
-
-	subdomain, err := util.GetSubdomain(c)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
-		return
-	}
 
 	baseAuthClient, err := uh.authProvider.GetAuthClientForSubdomain(c, subdomain)
 	if err != nil {
@@ -300,6 +311,23 @@ func (uh *UserHandler) ResetPasswordRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset email sent"})
 }
 
+// signupAuthClient is the auth client of the request's tenant; either lookup
+// failing answers 400, since a sign-up names its tenant by host.
+func (uh *UserHandler) signupAuthClient(c *gin.Context) (auth.AuthClient, bool) {
+	subdomain, ok := requestSubdomain(c)
+	if !ok {
+		return nil, false
+	}
+	client, err := uh.authProvider.GetAuthClientForSubdomain(c, subdomain)
+	if err != nil {
+		logger := util.GetLoggerFromCtx(c.Request.Context())
+		logger.Err(err).Msg("Failed to get auth client for subdomain")
+		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
+		return nil, false
+	}
+	return client, true
+}
+
 func (uh *UserHandler) Signup(c *gin.Context) {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
 
@@ -308,7 +336,6 @@ func (uh *UserHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, helpers.ErrorStringResponse("TenantID not found"))
 		return
 	}
-
 	tenant, err := uh.store.GetTenantByTenantID(c, tenantID.(string))
 	if err != nil {
 		logger.Err(err).Msg("Failed to get tenant")
@@ -320,6 +347,10 @@ func (uh *UserHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Sign up not allowed"})
 		return
 	}
+	baseAuthClient, ok := uh.signupAuthClient(c)
+	if !ok {
+		return
+	}
 
 	var req core.NewSignUp
 	if err := c.BindJSON(&req); err != nil {
@@ -327,21 +358,6 @@ func (uh *UserHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	subdomain, err := util.GetSubdomain(c)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
-		return
-	}
-
-	baseAuthClient, err := uh.authProvider.GetAuthClientForSubdomain(c, subdomain)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get auth client for subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
-		return
-	}
-
 	welcomeURL, err := getWelcomeEmailURL(c, tenant.Subdomain)
 	if err != nil {
 		logger.Err(err).Msg("Failed to get welcome email URL")
@@ -401,7 +417,6 @@ func (uh *UserHandler) Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
 		return
 	}
-
 	// Update profile with extra signup fields (phoneNumber, function, company)
 	if req.PhoneNumber != nil || req.Function != nil || req.Company != nil {
 		profile := user.Profile
@@ -632,10 +647,8 @@ func (uh *UserHandler) IdentifyUser(c *gin.Context) {
 		return
 	}
 
-	subdomain, err := util.GetSubdomain(c)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
+	subdomain, ok := requestSubdomain(c)
+	if !ok {
 		return
 	}
 

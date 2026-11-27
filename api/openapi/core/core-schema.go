@@ -913,6 +913,17 @@ type TenantMembership struct {
 // TenantMembershipStatus `inactive` is a membership that ended — left or removed. The row is kept because reactivating it is what restores a returning member's history.
 type TenantMembershipStatus string
 
+// TenantPictureProblem Why a tenant picture request was refused.
+type TenantPictureProblem struct {
+	Message string `json:"message"`
+}
+
+// TenantPictureUpload Multipart form carrying one WebP picture of at most 5 MB.
+type TenantPictureUpload struct {
+	// Picture The WebP bytes; the file name is ignored.
+	Picture *openapi_types.File `json:"picture,omitempty"`
+}
+
 // TenantProfile defines model for TenantProfile.
 type TenantProfile struct {
 	DarkColors struct {
@@ -1092,6 +1103,15 @@ type InternalServerError struct {
 	Error   *string `json:"error,omitempty"`
 	Message *string `json:"message,omitempty"`
 }
+
+// TenantPictureForbidden Why a tenant picture request was refused.
+type TenantPictureForbidden = TenantPictureProblem
+
+// TenantPictureRejected Why a tenant picture request was refused.
+type TenantPictureRejected = TenantPictureProblem
+
+// TenantPictureTooLarge Why a tenant picture request was refused.
+type TenantPictureTooLarge = TenantPictureProblem
 
 // UnauthorizedError defines model for UnauthorizedError.
 type UnauthorizedError struct {

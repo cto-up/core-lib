@@ -9,20 +9,18 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-
-	utils "github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 func (s *TenantHandler) GetTenantProfile(ctx *gin.Context) {
-	subdomain, err := utils.GetSubdomain(ctx)
-
-	// get tenant from context using subdomain
+	subdomain, ok := requestSubdomain(ctx)
+	if !ok {
+		return
+	}
 	tenantID, err := s.multiTenantService.GetTenantIDWithSubdomain(ctx, subdomain)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
 		return
 	}
-
 	tenant, err := s.store.GetTenantByTenantID(ctx, tenantID)
 	if err != nil {
 		if err.Error() == pgx.ErrNoRows.Error() {

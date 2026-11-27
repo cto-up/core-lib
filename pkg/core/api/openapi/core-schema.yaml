@@ -11,6 +11,10 @@ components:
       $ref: "./parts/tenant-features-schema.yaml"
     TenantFeatureLicenses:
       $ref: "./parts/tenant-feature-licenses-schema.yaml"
+    TenantPictureUpload:
+      $ref: "./parts/admin/pictures/tenant-picture-upload-schema.yaml"
+    TenantPictureProblem:
+      $ref: "./parts/admin/pictures/tenant-picture-problem-schema.yaml"
     ColorSchema:
       $ref: "./parts/tenant-color-schema.yaml"
     # Users
@@ -902,3 +906,45 @@ components:
               message:
                 type: string
                 example: "An internal error occurred"
+
+    # Tenant pictures (logo, background, background-mobile)
+    TenantPicture:
+      description: The stored WebP picture.
+      headers:
+        ETag:
+          description: Validator to send back in If-None-Match
+          schema:
+            type: string
+        Cache-Control:
+          description: How long the picture may be cached
+          schema:
+            type: string
+      content:
+        image/webp:
+          schema:
+            type: string
+            format: binary
+    TenantPictureNotModified:
+      description: The picture matches the If-None-Match validator; reuse the cached copy.
+    TenantPictureNotFound:
+      description: The tenant has no picture of this kind, or the request names no tenant.
+    TenantPictureStored:
+      description: The picture was stored and replaces the previous one.
+    TenantPictureRejected:
+      description: No picture field, no tenant on the request, or the bytes are not a WebP image.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TenantPictureProblem"
+    TenantPictureForbidden:
+      description: Only a tenant administrator, a super admin or an acting reseller may change the tenant pictures.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TenantPictureProblem"
+    TenantPictureTooLarge:
+      description: The picture exceeds 5 MB.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TenantPictureProblem"

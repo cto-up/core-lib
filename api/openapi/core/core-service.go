@@ -4,8 +4,12 @@
 package core
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -460,6 +464,24 @@ type ResetPasswordRequestJSONBody struct {
 	Email openapi_types.Email `json:"email"`
 }
 
+// GetTenantBackgroundParams defines parameters for GetTenantBackground.
+type GetTenantBackgroundParams struct {
+	// IfNoneMatch ETag from an earlier response
+	IfNoneMatch *string `json:"If-None-Match,omitempty"`
+}
+
+// GetTenantBackgroundMobileParams defines parameters for GetTenantBackgroundMobile.
+type GetTenantBackgroundMobileParams struct {
+	// IfNoneMatch ETag from an earlier response
+	IfNoneMatch *string `json:"If-None-Match,omitempty"`
+}
+
+// GetTenantLogoParams defines parameters for GetTenantLogo.
+type GetTenantLogoParams struct {
+	// IfNoneMatch ETag from an earlier response
+	IfNoneMatch *string `json:"If-None-Match,omitempty"`
+}
+
 // GetProfilePictureParams defines parameters for GetProfilePicture.
 type GetProfilePictureParams struct {
 	// IfNoneMatch ETag value for cache validation
@@ -625,6 +647,15 @@ type UpdateMeProfileJSONRequestBody UpdateMeProfileJSONBody
 // UploadProfilePictureMultipartRequestBody defines body for UploadProfilePicture for multipart/form-data ContentType.
 type UploadProfilePictureMultipartRequestBody UploadProfilePictureMultipartBody
 
+// UploadTenantBackgroundMultipartRequestBody defines body for UploadTenantBackground for multipart/form-data ContentType.
+type UploadTenantBackgroundMultipartRequestBody = TenantPictureUpload
+
+// UploadTenantBackgroundMobileMultipartRequestBody defines body for UploadTenantBackgroundMobile for multipart/form-data ContentType.
+type UploadTenantBackgroundMobileMultipartRequestBody = TenantPictureUpload
+
+// UploadTenantLogoMultipartRequestBody defines body for UploadTenantLogo for multipart/form-data ContentType.
+type UploadTenantLogoMultipartRequestBody = TenantPictureUpload
+
 // UpdateTenantProfileJSONRequestBody defines body for UpdateTenantProfile for application/json ContentType.
 type UpdateTenantProfileJSONRequestBody = TenantProfile
 
@@ -711,3 +742,4040 @@ type ResetPasswordRequestBySuperAdminJSONRequestBody ResetPasswordRequestBySuper
 
 // UpdateUserStatusFromSuperAdminJSONRequestBody defines body for UpdateUserStatusFromSuperAdmin for application/json ContentType.
 type UpdateUserStatusFromSuperAdminJSONRequestBody UpdateUserStatusFromSuperAdminJSONBody
+
+// ServerInterface represents all server handlers.
+type ServerInterface interface {
+
+	// (GET /admin-api/v1/activity)
+	ListTenantActivity(c *gin.Context, params ListTenantActivityParams)
+
+	// (GET /admin-api/v1/client-applications)
+	ListClientApplications(c *gin.Context, params ListClientApplicationsParams)
+
+	// (POST /admin-api/v1/client-applications)
+	CreateClientApplication(c *gin.Context)
+
+	// (DELETE /admin-api/v1/client-applications/{id})
+	DeleteClientApplication(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /admin-api/v1/client-applications/{id})
+	GetClientApplicationById(c *gin.Context, id openapi_types.UUID)
+
+	// (PUT /admin-api/v1/client-applications/{id})
+	UpdateClientApplication(c *gin.Context, id openapi_types.UUID)
+
+	// (PATCH /admin-api/v1/client-applications/{id}/deactivate)
+	DeactivateClientApplication(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /admin-api/v1/client-applications/{id}/tokens)
+	ListAPITokens(c *gin.Context, id openapi_types.UUID, params ListAPITokensParams)
+
+	// (POST /admin-api/v1/client-applications/{id}/tokens)
+	CreateAPIToken(c *gin.Context, id openapi_types.UUID)
+
+	// (DELETE /admin-api/v1/client-applications/{id}/tokens/{tokenId})
+	DeleteAPIToken(c *gin.Context, id openapi_types.UUID, tokenId openapi_types.UUID)
+
+	// (GET /admin-api/v1/client-applications/{id}/tokens/{tokenId})
+	GetAPITokenById(c *gin.Context, id openapi_types.UUID, tokenId openapi_types.UUID)
+
+	// (GET /admin-api/v1/client-applications/{id}/tokens/{tokenId}/audit)
+	GetAPITokenAuditLogs(c *gin.Context, id openapi_types.UUID, tokenId openapi_types.UUID, params GetAPITokenAuditLogsParams)
+
+	// (PATCH /admin-api/v1/client-applications/{id}/tokens/{tokenId}/revoke)
+	RevokeAPIToken(c *gin.Context, id openapi_types.UUID, tokenId openapi_types.UUID)
+
+	// (DELETE /admin-api/v1/email-deliveries)
+	EraseEmailDeliveries(c *gin.Context, params EraseEmailDeliveriesParams)
+
+	// (GET /admin-api/v1/email-deliveries)
+	ListEmailDeliveries(c *gin.Context, params ListEmailDeliveriesParams)
+
+	// (GET /admin-api/v1/pending-deletions)
+	ListPendingDeletions(c *gin.Context, params ListPendingDeletionsParams)
+
+	// (GET /admin-api/v1/personal-data-access)
+	ListPersonalDataAccess(c *gin.Context, params ListPersonalDataAccessParams)
+	// Close a member's account on their behalf
+	// (POST /admin-api/v1/users/{userid}/deletion)
+	ScheduleMemberAccountDeletion(c *gin.Context, userid string)
+	// Export a member's data on their behalf
+	// (GET /admin-api/v1/users/{userid}/export)
+	ExportMemberData(c *gin.Context, userid string)
+	// Remove a member from the organization through the leave lifecycle
+	// (POST /admin-api/v1/users/{userid}/leave)
+	LeaveTenantForMember(c *gin.Context, userid string)
+	// What removing a member from the organization would cost them
+	// (GET /admin-api/v1/users/{userid}/leave-preview)
+	GetMemberLeavePreview(c *gin.Context, userid string)
+
+	// (GET /api/v1/activity)
+	ListActivity(c *gin.Context, params ListActivityParams)
+
+	// (GET /api/v1/configs/tenant-configs)
+	ListTenantConfigs(c *gin.Context, params ListTenantConfigsParams)
+
+	// (POST /api/v1/configs/tenant-configs)
+	AddTenantConfig(c *gin.Context)
+
+	// (DELETE /api/v1/configs/tenant-configs/{id})
+	DeleteTenantConfig(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /api/v1/configs/tenant-configs/{id})
+	GetTenantConfigByID(c *gin.Context, id openapi_types.UUID)
+
+	// (PUT /api/v1/configs/tenant-configs/{id})
+	UpdateTenantConfig(c *gin.Context, id openapi_types.UUID)
+
+	// (POST /api/v1/me)
+	CreateMeUser(c *gin.Context)
+
+	// (POST /api/v1/me/email-verification/resend)
+	ResendEmailVerification(c *gin.Context)
+
+	// (GET /api/v1/me/email-verification/status)
+	GetMyEmailVerificationStatus(c *gin.Context)
+
+	// (GET /api/v1/me/feature-licenses)
+	GetMyFeatureLicenses(c *gin.Context)
+
+	// (GET /api/v1/me/profile)
+	GetMeProfile(c *gin.Context)
+
+	// (PUT /api/v1/me/profile)
+	UpdateMeProfile(c *gin.Context)
+
+	// (POST /api/v1/me/profile/picture)
+	UploadProfilePicture(c *gin.Context)
+	// Initialize settings flow
+	// (POST /api/v1/mfa/settings/init)
+	InitializeSettingsFlow(c *gin.Context)
+	// Get MFA status
+	// (GET /api/v1/mfa/status)
+	GetMFAStatus(c *gin.Context)
+	// Disable WebAuthn
+	// (DELETE /api/v1/mfa/webauthn)
+	DisableWebAuthn(c *gin.Context)
+
+	// (GET /api/v1/reseller/tenants)
+	ListResellerTenants(c *gin.Context)
+
+	// (POST /api/v1/tenant/pictures/background)
+	UploadTenantBackground(c *gin.Context)
+
+	// (POST /api/v1/tenant/pictures/background-mobile)
+	UploadTenantBackgroundMobile(c *gin.Context)
+
+	// (POST /api/v1/tenant/pictures/logo)
+	UploadTenantLogo(c *gin.Context)
+
+	// (GET /api/v1/tenant/profile)
+	GetTenantProfile(c *gin.Context)
+
+	// (PUT /api/v1/tenant/profile)
+	UpdateTenantProfile(c *gin.Context)
+
+	// (GET /api/v1/translations)
+	ListTranslations(c *gin.Context, params ListTranslationsParams)
+
+	// (POST /api/v1/translations)
+	CreateTranslation(c *gin.Context)
+
+	// (GET /api/v1/translations/search)
+	GetTranslation(c *gin.Context, params GetTranslationParams)
+
+	// (DELETE /api/v1/translations/{id})
+	DeleteTranslation(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /api/v1/translations/{id})
+	GetTranslationByID(c *gin.Context, id openapi_types.UUID, params GetTranslationByIDParams)
+
+	// (PUT /api/v1/translations/{id})
+	UpdateTranslation(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /api/v1/users)
+	ListUsers(c *gin.Context, params ListUsersParams)
+
+	// (POST /api/v1/users)
+	AddUser(c *gin.Context)
+
+	// (GET /api/v1/users/by-email/{email})
+	GetUserByEmail(c *gin.Context, email string)
+
+	// (GET /api/v1/users/check)
+	CheckUserExists(c *gin.Context, params CheckUserExistsParams)
+
+	// (POST /api/v1/users/import)
+	ImportUsersFromAdmin(c *gin.Context)
+	// What closing the account would cost, tenant by tenant
+	// (GET /api/v1/users/me/closure-preview)
+	GetMyAccountClosurePreview(c *gin.Context)
+	// Cancel a scheduled account deletion
+	// (DELETE /api/v1/users/me/deletion)
+	CancelMyAccountDeletion(c *gin.Context)
+	// Whether the caller's account is scheduled for deletion
+	// (GET /api/v1/users/me/deletion)
+	GetMyAccountDeletion(c *gin.Context)
+	// Schedule deletion of the caller's account
+	// (POST /api/v1/users/me/deletion)
+	ScheduleMyAccountDeletion(c *gin.Context)
+	// Export the caller's own data
+	// (GET /api/v1/users/me/export)
+	ExportMyData(c *gin.Context)
+	// Leave the current tenant (self-service)
+	// (POST /api/v1/users/me/leave)
+	LeaveTenant(c *gin.Context)
+	// What leaving this tenant would cost the caller
+	// (GET /api/v1/users/me/leave-preview)
+	GetMyLeaveTenantPreview(c *gin.Context)
+	// The tenants the caller belongs to
+	// (GET /api/v1/users/me/tenants)
+	ListMyTenants(c *gin.Context)
+	// Invitations awaiting the caller's answer
+	// (GET /api/v1/users/me/tenants/pending)
+	ListMyPendingInvitations(c *gin.Context)
+
+	// (DELETE /api/v1/users/{userid})
+	DeleteUser(c *gin.Context, userid string)
+
+	// (GET /api/v1/users/{userid})
+	GetUserByID(c *gin.Context, userid string)
+
+	// (PUT /api/v1/users/{userid})
+	UpdateUser(c *gin.Context, userid string)
+
+	// (GET /api/v1/users/{userid}/feature-licenses)
+	GetUserFeatureLicenses(c *gin.Context, userid string, params GetUserFeatureLicensesParams)
+
+	// (PUT /api/v1/users/{userid}/feature-licenses)
+	UpdateUserFeatureLicenses(c *gin.Context, userid string, params UpdateUserFeatureLicensesParams)
+
+	// (POST /api/v1/users/{userid}/membership)
+	AddUserMembership(c *gin.Context, userid string)
+
+	// (POST /api/v1/users/{userid}/password-reset-request)
+	ResetPasswordRequestByAdmin(c *gin.Context, userid string)
+
+	// (POST /api/v1/users/{userid}/reactivate)
+	ReactivateUser(c *gin.Context, userid string)
+
+	// (DELETE /api/v1/users/{userid}/remove-from-tenant)
+	RemoveUserFromTenant(c *gin.Context, userid string)
+
+	// (POST /api/v1/users/{userid}/roles/{role}/assign)
+	AssignRole(c *gin.Context, userid string, role Role)
+
+	// (POST /api/v1/users/{userid}/roles/{role}/unassign)
+	UnassignRole(c *gin.Context, userid string, role Role)
+
+	// (POST /api/v1/users/{userid}/status)
+	UpdateUserStatus(c *gin.Context, userid string)
+	// Identify user and initiate authentication flow
+	// (POST /public-api/v1/auth/identify)
+	IdentifyUser(c *gin.Context)
+	// Handle password recovery
+	// (GET /public-api/v1/auth/recovery)
+	HandleRecovery(c *gin.Context, params HandleRecoveryParams)
+	// Attach a social sign-in identity to the tenant of the current host
+	// (POST /public-api/v1/auth/social/complete)
+	CompleteSocialSignIn(c *gin.Context)
+	// API Health Check
+	// (GET /public-api/v1/health)
+	GetHealthCheck(c *gin.Context)
+	// Accept the invitation to the tenant of the current host
+	// (POST /public-api/v1/invitations/accept)
+	AcceptInvitation(c *gin.Context)
+	// Decline the invitation to the tenant of the current host
+	// (POST /public-api/v1/invitations/reject)
+	RejectInvitation(c *gin.Context)
+
+	// (POST /public-api/v1/password-reset-request)
+	ResetPasswordRequest(c *gin.Context)
+
+	// (POST /public-api/v1/sign-up)
+	Signup(c *gin.Context)
+
+	// (GET /public-api/v1/tenant)
+	GetPublicTenant(c *gin.Context)
+
+	// (GET /public-api/v1/tenant/pictures/background)
+	GetTenantBackground(c *gin.Context, params GetTenantBackgroundParams)
+
+	// (GET /public-api/v1/tenant/pictures/background-mobile)
+	GetTenantBackgroundMobile(c *gin.Context, params GetTenantBackgroundMobileParams)
+
+	// (GET /public-api/v1/tenant/pictures/logo)
+	GetTenantLogo(c *gin.Context, params GetTenantLogoParams)
+
+	// (GET /public-api/v1/users/{userid}/profile/picture)
+	GetProfilePicture(c *gin.Context, userid string, params GetProfilePictureParams)
+
+	// (POST /public-api/v1/verify-email)
+	VerifyEmail(c *gin.Context)
+
+	// (GET /superadmin-api/v1/configs/global-configs)
+	ListGlobalConfigs(c *gin.Context, params ListGlobalConfigsParams)
+
+	// (POST /superadmin-api/v1/configs/global-configs)
+	AddGlobalConfig(c *gin.Context)
+
+	// (DELETE /superadmin-api/v1/configs/global-configs/{id})
+	DeleteGlobalConfig(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/configs/global-configs/{id})
+	GetGlobalConfigByID(c *gin.Context, id openapi_types.UUID)
+
+	// (PUT /superadmin-api/v1/configs/global-configs/{id})
+	UpdateGlobalConfig(c *gin.Context, id openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/email-deliveries/summary)
+	SummarizeEmailDeliveries(c *gin.Context, params SummarizeEmailDeliveriesParams)
+
+	// (GET /superadmin-api/v1/tenant/{tenantid}/feature-licenses)
+	GetTenantFeatureLicenses(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (PUT /superadmin-api/v1/tenant/{tenantid}/feature-licenses)
+	UpdateTenantFeatureLicenses(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/tenant/{tenantid}/features)
+	GetTenantFeatures(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (PUT /superadmin-api/v1/tenant/{tenantid}/features)
+	UpdateTenantFeatures(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/tenants)
+	ListTenants(c *gin.Context, params ListTenantsParams)
+
+	// (POST /superadmin-api/v1/tenants)
+	AddTenant(c *gin.Context)
+
+	// (DELETE /superadmin-api/v1/tenants/{tenantid})
+	DeleteTenant(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/tenants/{tenantid})
+	GetTenantByID(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (PUT /superadmin-api/v1/tenants/{tenantid})
+	UpdateTenant(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/tenants/{tenantid}/users)
+	ListUsersFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, params ListUsersFromSuperAdminParams)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users)
+	AddUserFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID)
+
+	// (GET /superadmin-api/v1/tenants/{tenantid}/users/check)
+	CheckUserExistsFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, params CheckUserExistsFromSuperAdminParams)
+
+	// (DELETE /superadmin-api/v1/tenants/{tenantid}/users/{userid})
+	DeleteUserFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (GET /superadmin-api/v1/tenants/{tenantid}/users/{userid})
+	GetUserByIDFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (PUT /superadmin-api/v1/tenants/{tenantid}/users/{userid})
+	UpdateUserFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+	// Close a member's account on their behalf
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/deletion)
+	ScheduleMemberAccountDeletionFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+	// Export a member's data on their behalf
+	// (GET /superadmin-api/v1/tenants/{tenantid}/users/{userid}/export)
+	ExportMemberDataFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (DELETE /superadmin-api/v1/tenants/{tenantid}/users/{userid}/hard-delete)
+	HardDeleteUserFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+	// Remove a member from the organization through the leave lifecycle
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/leave)
+	LeaveTenantForMemberFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+	// What removing a member from the organization would cost them
+	// (GET /superadmin-api/v1/tenants/{tenantid}/users/{userid}/leave-preview)
+	GetMemberLeavePreviewFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/membership)
+	AddUserMembershipFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/password-reset-request)
+	ResetPasswordRequestBySuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/reactivate)
+	ReactivateUserFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (DELETE /superadmin-api/v1/tenants/{tenantid}/users/{userid}/remove-from-tenant)
+	RemoveUserFromTenantFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/roles/{role}/assign)
+	AssignRoleFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string, role Role)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/roles/{role}/unassign)
+	UnassignRoleFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string, role Role)
+
+	// (POST /superadmin-api/v1/tenants/{tenantid}/users/{userid}/status)
+	UpdateUserStatusFromSuperAdmin(c *gin.Context, tenantid openapi_types.UUID, userid string)
+}
+
+// ServerInterfaceWrapper converts contexts to parameters.
+type ServerInterfaceWrapper struct {
+	Handler            ServerInterface
+	HandlerMiddlewares []MiddlewareFunc
+	ErrorHandler       func(*gin.Context, error, int)
+}
+
+type MiddlewareFunc func(c *gin.Context)
+
+// ListTenantActivity operation middleware
+func (siw *ServerInterfaceWrapper) ListTenantActivity(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTenantActivityParams
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "kind", c.Request.URL.Query(), &params.Kind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter kind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "action" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "action", c.Request.URL.Query(), &params.Action)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter action: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "actorId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "actorId", c.Request.URL.Query(), &params.ActorId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter actorId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "before" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "before", c.Request.URL.Query(), &params.Before)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter before: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", c.Request.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListTenantActivity(c, params)
+}
+
+// ListClientApplications operation middleware
+func (siw *ServerInterfaceWrapper) ListClientApplications(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListClientApplicationsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "includeInactive" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeInactive", c.Request.URL.Query(), &params.IncludeInactive)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeInactive: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListClientApplications(c, params)
+}
+
+// CreateClientApplication operation middleware
+func (siw *ServerInterfaceWrapper) CreateClientApplication(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateClientApplication(c)
+}
+
+// DeleteClientApplication operation middleware
+func (siw *ServerInterfaceWrapper) DeleteClientApplication(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteClientApplication(c, id)
+}
+
+// GetClientApplicationById operation middleware
+func (siw *ServerInterfaceWrapper) GetClientApplicationById(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetClientApplicationById(c, id)
+}
+
+// UpdateClientApplication operation middleware
+func (siw *ServerInterfaceWrapper) UpdateClientApplication(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateClientApplication(c, id)
+}
+
+// DeactivateClientApplication operation middleware
+func (siw *ServerInterfaceWrapper) DeactivateClientApplication(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeactivateClientApplication(c, id)
+}
+
+// ListAPITokens operation middleware
+func (siw *ServerInterfaceWrapper) ListAPITokens(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAPITokensParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "includeRevoked" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeRevoked", c.Request.URL.Query(), &params.IncludeRevoked)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeRevoked: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "includeExpired" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "includeExpired", c.Request.URL.Query(), &params.IncludeExpired)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter includeExpired: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListAPITokens(c, id, params)
+}
+
+// CreateAPIToken operation middleware
+func (siw *ServerInterfaceWrapper) CreateAPIToken(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateAPIToken(c, id)
+}
+
+// DeleteAPIToken operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAPIToken(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tokenId" -------------
+	var tokenId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tokenId", c.Param("tokenId"), &tokenId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tokenId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteAPIToken(c, id, tokenId)
+}
+
+// GetAPITokenById operation middleware
+func (siw *ServerInterfaceWrapper) GetAPITokenById(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tokenId" -------------
+	var tokenId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tokenId", c.Param("tokenId"), &tokenId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tokenId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetAPITokenById(c, id, tokenId)
+}
+
+// GetAPITokenAuditLogs operation middleware
+func (siw *ServerInterfaceWrapper) GetAPITokenAuditLogs(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tokenId" -------------
+	var tokenId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tokenId", c.Param("tokenId"), &tokenId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tokenId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAPITokenAuditLogsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetAPITokenAuditLogs(c, id, tokenId, params)
+}
+
+// RevokeAPIToken operation middleware
+func (siw *ServerInterfaceWrapper) RevokeAPIToken(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "tokenId" -------------
+	var tokenId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tokenId", c.Param("tokenId"), &tokenId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tokenId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RevokeAPIToken(c, id, tokenId)
+}
+
+// EraseEmailDeliveries operation middleware
+func (siw *ServerInterfaceWrapper) EraseEmailDeliveries(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params EraseEmailDeliveriesParams
+
+	// ------------- Required query parameter "address" -------------
+
+	if paramValue := c.Query("address"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument address is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "address", c.Request.URL.Query(), &params.Address)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter address: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.EraseEmailDeliveries(c, params)
+}
+
+// ListEmailDeliveries operation middleware
+func (siw *ServerInterfaceWrapper) ListEmailDeliveries(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEmailDeliveriesParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "status", c.Request.URL.Query(), &params.Status)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter status: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "kind", c.Request.URL.Query(), &params.Kind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter kind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "address" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "address", c.Request.URL.Query(), &params.Address)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter address: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListEmailDeliveries(c, params)
+}
+
+// ListPendingDeletions operation middleware
+func (siw *ServerInterfaceWrapper) ListPendingDeletions(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListPendingDeletionsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListPendingDeletions(c, params)
+}
+
+// ListPersonalDataAccess operation middleware
+func (siw *ServerInterfaceWrapper) ListPersonalDataAccess(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListPersonalDataAccessParams
+
+	// ------------- Optional query parameter "subjectUserId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subjectUserId", c.Request.URL.Query(), &params.SubjectUserId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter subjectUserId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "actorUserId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "actorUserId", c.Request.URL.Query(), &params.ActorUserId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter actorUserId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListPersonalDataAccess(c, params)
+}
+
+// ScheduleMemberAccountDeletion operation middleware
+func (siw *ServerInterfaceWrapper) ScheduleMemberAccountDeletion(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ScheduleMemberAccountDeletion(c, userid)
+}
+
+// ExportMemberData operation middleware
+func (siw *ServerInterfaceWrapper) ExportMemberData(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExportMemberData(c, userid)
+}
+
+// LeaveTenantForMember operation middleware
+func (siw *ServerInterfaceWrapper) LeaveTenantForMember(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.LeaveTenantForMember(c, userid)
+}
+
+// GetMemberLeavePreview operation middleware
+func (siw *ServerInterfaceWrapper) GetMemberLeavePreview(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMemberLeavePreview(c, userid)
+}
+
+// ListActivity operation middleware
+func (siw *ServerInterfaceWrapper) ListActivity(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListActivityParams
+
+	// ------------- Optional query parameter "targetKind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "targetKind", c.Request.URL.Query(), &params.TargetKind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter targetKind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "targetId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "targetId", c.Request.URL.Query(), &params.TargetId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter targetId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "scopeKind" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "scopeKind", c.Request.URL.Query(), &params.ScopeKind)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter scopeKind: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "scopeId" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "scopeId", c.Request.URL.Query(), &params.ScopeId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter scopeId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "before" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "before", c.Request.URL.Query(), &params.Before)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter before: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", c.Request.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListActivity(c, params)
+}
+
+// ListTenantConfigs operation middleware
+func (siw *ServerInterfaceWrapper) ListTenantConfigs(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTenantConfigsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "detail" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "detail", c.Request.URL.Query(), &params.Detail)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter detail: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListTenantConfigs(c, params)
+}
+
+// AddTenantConfig operation middleware
+func (siw *ServerInterfaceWrapper) AddTenantConfig(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddTenantConfig(c)
+}
+
+// DeleteTenantConfig operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTenantConfig(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteTenantConfig(c, id)
+}
+
+// GetTenantConfigByID operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantConfigByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantConfigByID(c, id)
+}
+
+// UpdateTenantConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTenantConfig(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateTenantConfig(c, id)
+}
+
+// CreateMeUser operation middleware
+func (siw *ServerInterfaceWrapper) CreateMeUser(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateMeUser(c)
+}
+
+// ResendEmailVerification operation middleware
+func (siw *ServerInterfaceWrapper) ResendEmailVerification(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ResendEmailVerification(c)
+}
+
+// GetMyEmailVerificationStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetMyEmailVerificationStatus(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyEmailVerificationStatus(c)
+}
+
+// GetMyFeatureLicenses operation middleware
+func (siw *ServerInterfaceWrapper) GetMyFeatureLicenses(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyFeatureLicenses(c)
+}
+
+// GetMeProfile operation middleware
+func (siw *ServerInterfaceWrapper) GetMeProfile(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMeProfile(c)
+}
+
+// UpdateMeProfile operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMeProfile(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateMeProfile(c)
+}
+
+// UploadProfilePicture operation middleware
+func (siw *ServerInterfaceWrapper) UploadProfilePicture(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UploadProfilePicture(c)
+}
+
+// InitializeSettingsFlow operation middleware
+func (siw *ServerInterfaceWrapper) InitializeSettingsFlow(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.InitializeSettingsFlow(c)
+}
+
+// GetMFAStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetMFAStatus(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMFAStatus(c)
+}
+
+// DisableWebAuthn operation middleware
+func (siw *ServerInterfaceWrapper) DisableWebAuthn(c *gin.Context) {
+
+	c.Set(CookieAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DisableWebAuthn(c)
+}
+
+// ListResellerTenants operation middleware
+func (siw *ServerInterfaceWrapper) ListResellerTenants(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListResellerTenants(c)
+}
+
+// UploadTenantBackground operation middleware
+func (siw *ServerInterfaceWrapper) UploadTenantBackground(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UploadTenantBackground(c)
+}
+
+// UploadTenantBackgroundMobile operation middleware
+func (siw *ServerInterfaceWrapper) UploadTenantBackgroundMobile(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UploadTenantBackgroundMobile(c)
+}
+
+// UploadTenantLogo operation middleware
+func (siw *ServerInterfaceWrapper) UploadTenantLogo(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UploadTenantLogo(c)
+}
+
+// GetTenantProfile operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantProfile(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantProfile(c)
+}
+
+// UpdateTenantProfile operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTenantProfile(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateTenantProfile(c)
+}
+
+// ListTranslations operation middleware
+func (siw *ServerInterfaceWrapper) ListTranslations(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTranslationsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "page_size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page_size", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page_size: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sort_by" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort_by", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sort_by: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "lang" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "lang", c.Request.URL.Query(), &params.Lang)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter lang: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "type", c.Request.URL.Query(), &params.Type)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter type: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "key" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "key", c.Request.URL.Query(), &params.Key)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter key: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListTranslations(c, params)
+}
+
+// CreateTranslation operation middleware
+func (siw *ServerInterfaceWrapper) CreateTranslation(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateTranslation(c)
+}
+
+// GetTranslation operation middleware
+func (siw *ServerInterfaceWrapper) GetTranslation(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTranslationParams
+
+	// ------------- Required query parameter "entityType" -------------
+
+	if paramValue := c.Query("entityType"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument entityType is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "entityType", c.Request.URL.Query(), &params.EntityType)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter entityType: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "entityId" -------------
+
+	if paramValue := c.Query("entityId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument entityId is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "entityId", c.Request.URL.Query(), &params.EntityId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter entityId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "field" -------------
+
+	if paramValue := c.Query("field"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument field is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "field", c.Request.URL.Query(), &params.Field)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter field: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "language" -------------
+
+	if paramValue := c.Query("language"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument language is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "language", c.Request.URL.Query(), &params.Language)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter language: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTranslation(c, params)
+}
+
+// DeleteTranslation operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTranslation(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteTranslation(c, id)
+}
+
+// GetTranslationByID operation middleware
+func (siw *ServerInterfaceWrapper) GetTranslationByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTranslationByIDParams
+
+	// ------------- Optional query parameter "lang" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "lang", c.Request.URL.Query(), &params.Lang)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter lang: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTranslationByID(c, id, params)
+}
+
+// UpdateTranslation operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTranslation(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateTranslation(c, id)
+}
+
+// ListUsers operation middleware
+func (siw *ServerInterfaceWrapper) ListUsers(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListUsersParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "detail" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "detail", c.Request.URL.Query(), &params.Detail)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter detail: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "scope", c.Request.URL.Query(), &params.Scope)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter scope: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListUsers(c, params)
+}
+
+// AddUser operation middleware
+func (siw *ServerInterfaceWrapper) AddUser(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddUser(c)
+}
+
+// GetUserByEmail operation middleware
+func (siw *ServerInterfaceWrapper) GetUserByEmail(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "email" -------------
+	var email string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "email", c.Param("email"), &email, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter email: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetUserByEmail(c, email)
+}
+
+// CheckUserExists operation middleware
+func (siw *ServerInterfaceWrapper) CheckUserExists(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CheckUserExistsParams
+
+	// ------------- Required query parameter "email" -------------
+
+	if paramValue := c.Query("email"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument email is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "email", c.Request.URL.Query(), &params.Email)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter email: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CheckUserExists(c, params)
+}
+
+// ImportUsersFromAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ImportUsersFromAdmin(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ImportUsersFromAdmin(c)
+}
+
+// GetMyAccountClosurePreview operation middleware
+func (siw *ServerInterfaceWrapper) GetMyAccountClosurePreview(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyAccountClosurePreview(c)
+}
+
+// CancelMyAccountDeletion operation middleware
+func (siw *ServerInterfaceWrapper) CancelMyAccountDeletion(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CancelMyAccountDeletion(c)
+}
+
+// GetMyAccountDeletion operation middleware
+func (siw *ServerInterfaceWrapper) GetMyAccountDeletion(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyAccountDeletion(c)
+}
+
+// ScheduleMyAccountDeletion operation middleware
+func (siw *ServerInterfaceWrapper) ScheduleMyAccountDeletion(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ScheduleMyAccountDeletion(c)
+}
+
+// ExportMyData operation middleware
+func (siw *ServerInterfaceWrapper) ExportMyData(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExportMyData(c)
+}
+
+// LeaveTenant operation middleware
+func (siw *ServerInterfaceWrapper) LeaveTenant(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.LeaveTenant(c)
+}
+
+// GetMyLeaveTenantPreview operation middleware
+func (siw *ServerInterfaceWrapper) GetMyLeaveTenantPreview(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyLeaveTenantPreview(c)
+}
+
+// ListMyTenants operation middleware
+func (siw *ServerInterfaceWrapper) ListMyTenants(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListMyTenants(c)
+}
+
+// ListMyPendingInvitations operation middleware
+func (siw *ServerInterfaceWrapper) ListMyPendingInvitations(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListMyPendingInvitations(c)
+}
+
+// DeleteUser operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUser(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteUser(c, userid)
+}
+
+// GetUserByID operation middleware
+func (siw *ServerInterfaceWrapper) GetUserByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetUserByID(c, userid)
+}
+
+// UpdateUser operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUser(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUser(c, userid)
+}
+
+// GetUserFeatureLicenses operation middleware
+func (siw *ServerInterfaceWrapper) GetUserFeatureLicenses(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserFeatureLicensesParams
+
+	// ------------- Optional query parameter "tenant_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "tenant_id", c.Request.URL.Query(), &params.TenantId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenant_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetUserFeatureLicenses(c, userid, params)
+}
+
+// UpdateUserFeatureLicenses operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserFeatureLicenses(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateUserFeatureLicensesParams
+
+	// ------------- Optional query parameter "tenant_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "tenant_id", c.Request.URL.Query(), &params.TenantId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenant_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUserFeatureLicenses(c, userid, params)
+}
+
+// AddUserMembership operation middleware
+func (siw *ServerInterfaceWrapper) AddUserMembership(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddUserMembership(c, userid)
+}
+
+// ResetPasswordRequestByAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ResetPasswordRequestByAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ResetPasswordRequestByAdmin(c, userid)
+}
+
+// ReactivateUser operation middleware
+func (siw *ServerInterfaceWrapper) ReactivateUser(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ReactivateUser(c, userid)
+}
+
+// RemoveUserFromTenant operation middleware
+func (siw *ServerInterfaceWrapper) RemoveUserFromTenant(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RemoveUserFromTenant(c, userid)
+}
+
+// AssignRole operation middleware
+func (siw *ServerInterfaceWrapper) AssignRole(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "role" -------------
+	var role Role
+
+	err = runtime.BindStyledParameterWithOptions("simple", "role", c.Param("role"), &role, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter role: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AssignRole(c, userid, role)
+}
+
+// UnassignRole operation middleware
+func (siw *ServerInterfaceWrapper) UnassignRole(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "role" -------------
+	var role Role
+
+	err = runtime.BindStyledParameterWithOptions("simple", "role", c.Param("role"), &role, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter role: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UnassignRole(c, userid, role)
+}
+
+// UpdateUserStatus operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserStatus(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUserStatus(c, userid)
+}
+
+// IdentifyUser operation middleware
+func (siw *ServerInterfaceWrapper) IdentifyUser(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.IdentifyUser(c)
+}
+
+// HandleRecovery operation middleware
+func (siw *ServerInterfaceWrapper) HandleRecovery(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandleRecoveryParams
+
+	// ------------- Required query parameter "flow" -------------
+
+	if paramValue := c.Query("flow"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument flow is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "flow", c.Request.URL.Query(), &params.Flow)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter flow: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Required query parameter "token" -------------
+
+	if paramValue := c.Query("token"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument token is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "token", c.Request.URL.Query(), &params.Token)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter token: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.HandleRecovery(c, params)
+}
+
+// CompleteSocialSignIn operation middleware
+func (siw *ServerInterfaceWrapper) CompleteSocialSignIn(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CompleteSocialSignIn(c)
+}
+
+// GetHealthCheck operation middleware
+func (siw *ServerInterfaceWrapper) GetHealthCheck(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetHealthCheck(c)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AcceptInvitation(c)
+}
+
+// RejectInvitation operation middleware
+func (siw *ServerInterfaceWrapper) RejectInvitation(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RejectInvitation(c)
+}
+
+// ResetPasswordRequest operation middleware
+func (siw *ServerInterfaceWrapper) ResetPasswordRequest(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ResetPasswordRequest(c)
+}
+
+// Signup operation middleware
+func (siw *ServerInterfaceWrapper) Signup(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Signup(c)
+}
+
+// GetPublicTenant operation middleware
+func (siw *ServerInterfaceWrapper) GetPublicTenant(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetPublicTenant(c)
+}
+
+// GetTenantBackground operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantBackground(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTenantBackgroundParams
+
+	headers := c.Request.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for If-None-Match, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter If-None-Match: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantBackground(c, params)
+}
+
+// GetTenantBackgroundMobile operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantBackgroundMobile(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTenantBackgroundMobileParams
+
+	headers := c.Request.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for If-None-Match, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter If-None-Match: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantBackgroundMobile(c, params)
+}
+
+// GetTenantLogo operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantLogo(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTenantLogoParams
+
+	headers := c.Request.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for If-None-Match, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter If-None-Match: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantLogo(c, params)
+}
+
+// GetProfilePicture operation middleware
+func (siw *ServerInterfaceWrapper) GetProfilePicture(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetProfilePictureParams
+
+	headers := c.Request.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for If-None-Match, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter If-None-Match: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetProfilePicture(c, userid, params)
+}
+
+// VerifyEmail operation middleware
+func (siw *ServerInterfaceWrapper) VerifyEmail(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.VerifyEmail(c)
+}
+
+// ListGlobalConfigs operation middleware
+func (siw *ServerInterfaceWrapper) ListGlobalConfigs(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGlobalConfigsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "detail" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "detail", c.Request.URL.Query(), &params.Detail)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter detail: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListGlobalConfigs(c, params)
+}
+
+// AddGlobalConfig operation middleware
+func (siw *ServerInterfaceWrapper) AddGlobalConfig(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddGlobalConfig(c)
+}
+
+// DeleteGlobalConfig operation middleware
+func (siw *ServerInterfaceWrapper) DeleteGlobalConfig(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteGlobalConfig(c, id)
+}
+
+// GetGlobalConfigByID operation middleware
+func (siw *ServerInterfaceWrapper) GetGlobalConfigByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetGlobalConfigByID(c, id)
+}
+
+// UpdateGlobalConfig operation middleware
+func (siw *ServerInterfaceWrapper) UpdateGlobalConfig(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateGlobalConfig(c, id)
+}
+
+// SummarizeEmailDeliveries operation middleware
+func (siw *ServerInterfaceWrapper) SummarizeEmailDeliveries(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SummarizeEmailDeliveriesParams
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "from", c.Request.URL.Query(), &params.From)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter from: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "to", c.Request.URL.Query(), &params.To)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter to: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SummarizeEmailDeliveries(c, params)
+}
+
+// GetTenantFeatureLicenses operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantFeatureLicenses(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantFeatureLicenses(c, tenantid)
+}
+
+// UpdateTenantFeatureLicenses operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTenantFeatureLicenses(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateTenantFeatureLicenses(c, tenantid)
+}
+
+// GetTenantFeatures operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantFeatures(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantFeatures(c, tenantid)
+}
+
+// UpdateTenantFeatures operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTenantFeatures(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateTenantFeatures(c, tenantid)
+}
+
+// ListTenants operation middleware
+func (siw *ServerInterfaceWrapper) ListTenants(c *gin.Context) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTenantsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "reseller_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "reseller_id", c.Request.URL.Query(), &params.ResellerId)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter reseller_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "global" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "global", c.Request.URL.Query(), &params.Global)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter global: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListTenants(c, params)
+}
+
+// AddTenant operation middleware
+func (siw *ServerInterfaceWrapper) AddTenant(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddTenant(c)
+}
+
+// DeleteTenant operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTenant(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteTenant(c, tenantid)
+}
+
+// GetTenantByID operation middleware
+func (siw *ServerInterfaceWrapper) GetTenantByID(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetTenantByID(c, tenantid)
+}
+
+// UpdateTenant operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTenant(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateTenant(c, tenantid)
+}
+
+// ListUsersFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ListUsersFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListUsersFromSuperAdminParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", c.Request.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter page: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pageSize", c.Request.URL.Query(), &params.PageSize)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter pageSize: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "sortBy" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sortBy", c.Request.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter sortBy: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "order" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "order", c.Request.URL.Query(), &params.Order)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter order: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "q", c.Request.URL.Query(), &params.Q)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListUsersFromSuperAdmin(c, tenantid, params)
+}
+
+// AddUserFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) AddUserFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddUserFromSuperAdmin(c, tenantid)
+}
+
+// CheckUserExistsFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) CheckUserExistsFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CheckUserExistsFromSuperAdminParams
+
+	// ------------- Required query parameter "email" -------------
+
+	if paramValue := c.Query("email"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Query argument email is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "email", c.Request.URL.Query(), &params.Email)
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter email: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CheckUserExistsFromSuperAdmin(c, tenantid, params)
+}
+
+// DeleteUserFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUserFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteUserFromSuperAdmin(c, tenantid, userid)
+}
+
+// GetUserByIDFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) GetUserByIDFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetUserByIDFromSuperAdmin(c, tenantid, userid)
+}
+
+// UpdateUserFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUserFromSuperAdmin(c, tenantid, userid)
+}
+
+// ScheduleMemberAccountDeletionFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ScheduleMemberAccountDeletionFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ScheduleMemberAccountDeletionFromSuperAdmin(c, tenantid, userid)
+}
+
+// ExportMemberDataFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ExportMemberDataFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ExportMemberDataFromSuperAdmin(c, tenantid, userid)
+}
+
+// HardDeleteUserFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) HardDeleteUserFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.HardDeleteUserFromSuperAdmin(c, tenantid, userid)
+}
+
+// LeaveTenantForMemberFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) LeaveTenantForMemberFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.LeaveTenantForMemberFromSuperAdmin(c, tenantid, userid)
+}
+
+// GetMemberLeavePreviewFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) GetMemberLeavePreviewFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMemberLeavePreviewFromSuperAdmin(c, tenantid, userid)
+}
+
+// AddUserMembershipFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) AddUserMembershipFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddUserMembershipFromSuperAdmin(c, tenantid, userid)
+}
+
+// ResetPasswordRequestBySuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ResetPasswordRequestBySuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ResetPasswordRequestBySuperAdmin(c, tenantid, userid)
+}
+
+// ReactivateUserFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) ReactivateUserFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ReactivateUserFromSuperAdmin(c, tenantid, userid)
+}
+
+// RemoveUserFromTenantFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) RemoveUserFromTenantFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RemoveUserFromTenantFromSuperAdmin(c, tenantid, userid)
+}
+
+// AssignRoleFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) AssignRoleFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "role" -------------
+	var role Role
+
+	err = runtime.BindStyledParameterWithOptions("simple", "role", c.Param("role"), &role, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter role: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AssignRoleFromSuperAdmin(c, tenantid, userid, role)
+}
+
+// UnassignRoleFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) UnassignRoleFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "role" -------------
+	var role Role
+
+	err = runtime.BindStyledParameterWithOptions("simple", "role", c.Param("role"), &role, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter role: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UnassignRoleFromSuperAdmin(c, tenantid, userid, role)
+}
+
+// UpdateUserStatusFromSuperAdmin operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserStatusFromSuperAdmin(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "tenantid" -------------
+	var tenantid openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "tenantid", c.Param("tenantid"), &tenantid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter tenantid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "userid" -------------
+	var userid string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userid", c.Param("userid"), &userid, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userid: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUserStatusFromSuperAdmin(c, tenantid, userid)
+}
+
+// GinServerOptions provides options for the Gin server.
+type GinServerOptions struct {
+	BaseURL      string
+	Middlewares  []MiddlewareFunc
+	ErrorHandler func(*gin.Context, error, int)
+}
+
+// RegisterHandlers creates http.Handler with routing matching OpenAPI spec.
+func RegisterHandlers(router gin.IRouter, si ServerInterface) {
+	RegisterHandlersWithOptions(router, si, GinServerOptions{})
+}
+
+// RegisterHandlersWithOptions creates http.Handler with additional options
+func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options GinServerOptions) {
+	errorHandler := options.ErrorHandler
+	if errorHandler == nil {
+		errorHandler = func(c *gin.Context, err error, statusCode int) {
+			c.JSON(statusCode, gin.H{"msg": err.Error()})
+		}
+	}
+
+	wrapper := ServerInterfaceWrapper{
+		Handler:            si,
+		HandlerMiddlewares: options.Middlewares,
+		ErrorHandler:       errorHandler,
+	}
+
+	router.GET(options.BaseURL+"/admin-api/v1/activity", wrapper.ListTenantActivity)
+	router.GET(options.BaseURL+"/admin-api/v1/client-applications", wrapper.ListClientApplications)
+	router.POST(options.BaseURL+"/admin-api/v1/client-applications", wrapper.CreateClientApplication)
+	router.DELETE(options.BaseURL+"/admin-api/v1/client-applications/:id", wrapper.DeleteClientApplication)
+	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id", wrapper.GetClientApplicationById)
+	router.PUT(options.BaseURL+"/admin-api/v1/client-applications/:id", wrapper.UpdateClientApplication)
+	router.PATCH(options.BaseURL+"/admin-api/v1/client-applications/:id/deactivate", wrapper.DeactivateClientApplication)
+	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens", wrapper.ListAPITokens)
+	router.POST(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens", wrapper.CreateAPIToken)
+	router.DELETE(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId", wrapper.DeleteAPIToken)
+	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId", wrapper.GetAPITokenById)
+	router.GET(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId/audit", wrapper.GetAPITokenAuditLogs)
+	router.PATCH(options.BaseURL+"/admin-api/v1/client-applications/:id/tokens/:tokenId/revoke", wrapper.RevokeAPIToken)
+	router.DELETE(options.BaseURL+"/admin-api/v1/email-deliveries", wrapper.EraseEmailDeliveries)
+	router.GET(options.BaseURL+"/admin-api/v1/email-deliveries", wrapper.ListEmailDeliveries)
+	router.GET(options.BaseURL+"/admin-api/v1/pending-deletions", wrapper.ListPendingDeletions)
+	router.GET(options.BaseURL+"/admin-api/v1/personal-data-access", wrapper.ListPersonalDataAccess)
+	router.POST(options.BaseURL+"/admin-api/v1/users/:userid/deletion", wrapper.ScheduleMemberAccountDeletion)
+	router.GET(options.BaseURL+"/admin-api/v1/users/:userid/export", wrapper.ExportMemberData)
+	router.POST(options.BaseURL+"/admin-api/v1/users/:userid/leave", wrapper.LeaveTenantForMember)
+	router.GET(options.BaseURL+"/admin-api/v1/users/:userid/leave-preview", wrapper.GetMemberLeavePreview)
+	router.GET(options.BaseURL+"/api/v1/activity", wrapper.ListActivity)
+	router.GET(options.BaseURL+"/api/v1/configs/tenant-configs", wrapper.ListTenantConfigs)
+	router.POST(options.BaseURL+"/api/v1/configs/tenant-configs", wrapper.AddTenantConfig)
+	router.DELETE(options.BaseURL+"/api/v1/configs/tenant-configs/:id", wrapper.DeleteTenantConfig)
+	router.GET(options.BaseURL+"/api/v1/configs/tenant-configs/:id", wrapper.GetTenantConfigByID)
+	router.PUT(options.BaseURL+"/api/v1/configs/tenant-configs/:id", wrapper.UpdateTenantConfig)
+	router.POST(options.BaseURL+"/api/v1/me", wrapper.CreateMeUser)
+	router.POST(options.BaseURL+"/api/v1/me/email-verification/resend", wrapper.ResendEmailVerification)
+	router.GET(options.BaseURL+"/api/v1/me/email-verification/status", wrapper.GetMyEmailVerificationStatus)
+	router.GET(options.BaseURL+"/api/v1/me/feature-licenses", wrapper.GetMyFeatureLicenses)
+	router.GET(options.BaseURL+"/api/v1/me/profile", wrapper.GetMeProfile)
+	router.PUT(options.BaseURL+"/api/v1/me/profile", wrapper.UpdateMeProfile)
+	router.POST(options.BaseURL+"/api/v1/me/profile/picture", wrapper.UploadProfilePicture)
+	router.POST(options.BaseURL+"/api/v1/mfa/settings/init", wrapper.InitializeSettingsFlow)
+	router.GET(options.BaseURL+"/api/v1/mfa/status", wrapper.GetMFAStatus)
+	router.DELETE(options.BaseURL+"/api/v1/mfa/webauthn", wrapper.DisableWebAuthn)
+	router.GET(options.BaseURL+"/api/v1/reseller/tenants", wrapper.ListResellerTenants)
+	router.POST(options.BaseURL+"/api/v1/tenant/pictures/background", wrapper.UploadTenantBackground)
+	router.POST(options.BaseURL+"/api/v1/tenant/pictures/background-mobile", wrapper.UploadTenantBackgroundMobile)
+	router.POST(options.BaseURL+"/api/v1/tenant/pictures/logo", wrapper.UploadTenantLogo)
+	router.GET(options.BaseURL+"/api/v1/tenant/profile", wrapper.GetTenantProfile)
+	router.PUT(options.BaseURL+"/api/v1/tenant/profile", wrapper.UpdateTenantProfile)
+	router.GET(options.BaseURL+"/api/v1/translations", wrapper.ListTranslations)
+	router.POST(options.BaseURL+"/api/v1/translations", wrapper.CreateTranslation)
+	router.GET(options.BaseURL+"/api/v1/translations/search", wrapper.GetTranslation)
+	router.DELETE(options.BaseURL+"/api/v1/translations/:id", wrapper.DeleteTranslation)
+	router.GET(options.BaseURL+"/api/v1/translations/:id", wrapper.GetTranslationByID)
+	router.PUT(options.BaseURL+"/api/v1/translations/:id", wrapper.UpdateTranslation)
+	router.GET(options.BaseURL+"/api/v1/users", wrapper.ListUsers)
+	router.POST(options.BaseURL+"/api/v1/users", wrapper.AddUser)
+	router.GET(options.BaseURL+"/api/v1/users/by-email/:email", wrapper.GetUserByEmail)
+	router.GET(options.BaseURL+"/api/v1/users/check", wrapper.CheckUserExists)
+	router.POST(options.BaseURL+"/api/v1/users/import", wrapper.ImportUsersFromAdmin)
+	router.GET(options.BaseURL+"/api/v1/users/me/closure-preview", wrapper.GetMyAccountClosurePreview)
+	router.DELETE(options.BaseURL+"/api/v1/users/me/deletion", wrapper.CancelMyAccountDeletion)
+	router.GET(options.BaseURL+"/api/v1/users/me/deletion", wrapper.GetMyAccountDeletion)
+	router.POST(options.BaseURL+"/api/v1/users/me/deletion", wrapper.ScheduleMyAccountDeletion)
+	router.GET(options.BaseURL+"/api/v1/users/me/export", wrapper.ExportMyData)
+	router.POST(options.BaseURL+"/api/v1/users/me/leave", wrapper.LeaveTenant)
+	router.GET(options.BaseURL+"/api/v1/users/me/leave-preview", wrapper.GetMyLeaveTenantPreview)
+	router.GET(options.BaseURL+"/api/v1/users/me/tenants", wrapper.ListMyTenants)
+	router.GET(options.BaseURL+"/api/v1/users/me/tenants/pending", wrapper.ListMyPendingInvitations)
+	router.DELETE(options.BaseURL+"/api/v1/users/:userid", wrapper.DeleteUser)
+	router.GET(options.BaseURL+"/api/v1/users/:userid", wrapper.GetUserByID)
+	router.PUT(options.BaseURL+"/api/v1/users/:userid", wrapper.UpdateUser)
+	router.GET(options.BaseURL+"/api/v1/users/:userid/feature-licenses", wrapper.GetUserFeatureLicenses)
+	router.PUT(options.BaseURL+"/api/v1/users/:userid/feature-licenses", wrapper.UpdateUserFeatureLicenses)
+	router.POST(options.BaseURL+"/api/v1/users/:userid/membership", wrapper.AddUserMembership)
+	router.POST(options.BaseURL+"/api/v1/users/:userid/password-reset-request", wrapper.ResetPasswordRequestByAdmin)
+	router.POST(options.BaseURL+"/api/v1/users/:userid/reactivate", wrapper.ReactivateUser)
+	router.DELETE(options.BaseURL+"/api/v1/users/:userid/remove-from-tenant", wrapper.RemoveUserFromTenant)
+	router.POST(options.BaseURL+"/api/v1/users/:userid/roles/:role/assign", wrapper.AssignRole)
+	router.POST(options.BaseURL+"/api/v1/users/:userid/roles/:role/unassign", wrapper.UnassignRole)
+	router.POST(options.BaseURL+"/api/v1/users/:userid/status", wrapper.UpdateUserStatus)
+	router.POST(options.BaseURL+"/public-api/v1/auth/identify", wrapper.IdentifyUser)
+	router.GET(options.BaseURL+"/public-api/v1/auth/recovery", wrapper.HandleRecovery)
+	router.POST(options.BaseURL+"/public-api/v1/auth/social/complete", wrapper.CompleteSocialSignIn)
+	router.GET(options.BaseURL+"/public-api/v1/health", wrapper.GetHealthCheck)
+	router.POST(options.BaseURL+"/public-api/v1/invitations/accept", wrapper.AcceptInvitation)
+	router.POST(options.BaseURL+"/public-api/v1/invitations/reject", wrapper.RejectInvitation)
+	router.POST(options.BaseURL+"/public-api/v1/password-reset-request", wrapper.ResetPasswordRequest)
+	router.POST(options.BaseURL+"/public-api/v1/sign-up", wrapper.Signup)
+	router.GET(options.BaseURL+"/public-api/v1/tenant", wrapper.GetPublicTenant)
+	router.GET(options.BaseURL+"/public-api/v1/tenant/pictures/background", wrapper.GetTenantBackground)
+	router.GET(options.BaseURL+"/public-api/v1/tenant/pictures/background-mobile", wrapper.GetTenantBackgroundMobile)
+	router.GET(options.BaseURL+"/public-api/v1/tenant/pictures/logo", wrapper.GetTenantLogo)
+	router.GET(options.BaseURL+"/public-api/v1/users/:userid/profile/picture", wrapper.GetProfilePicture)
+	router.POST(options.BaseURL+"/public-api/v1/verify-email", wrapper.VerifyEmail)
+	router.GET(options.BaseURL+"/superadmin-api/v1/configs/global-configs", wrapper.ListGlobalConfigs)
+	router.POST(options.BaseURL+"/superadmin-api/v1/configs/global-configs", wrapper.AddGlobalConfig)
+	router.DELETE(options.BaseURL+"/superadmin-api/v1/configs/global-configs/:id", wrapper.DeleteGlobalConfig)
+	router.GET(options.BaseURL+"/superadmin-api/v1/configs/global-configs/:id", wrapper.GetGlobalConfigByID)
+	router.PUT(options.BaseURL+"/superadmin-api/v1/configs/global-configs/:id", wrapper.UpdateGlobalConfig)
+	router.GET(options.BaseURL+"/superadmin-api/v1/email-deliveries/summary", wrapper.SummarizeEmailDeliveries)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/feature-licenses", wrapper.GetTenantFeatureLicenses)
+	router.PUT(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/feature-licenses", wrapper.UpdateTenantFeatureLicenses)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/features", wrapper.GetTenantFeatures)
+	router.PUT(options.BaseURL+"/superadmin-api/v1/tenant/:tenantid/features", wrapper.UpdateTenantFeatures)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants", wrapper.ListTenants)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants", wrapper.AddTenant)
+	router.DELETE(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid", wrapper.DeleteTenant)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid", wrapper.GetTenantByID)
+	router.PUT(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid", wrapper.UpdateTenant)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users", wrapper.ListUsersFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users", wrapper.AddUserFromSuperAdmin)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/check", wrapper.CheckUserExistsFromSuperAdmin)
+	router.DELETE(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid", wrapper.DeleteUserFromSuperAdmin)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid", wrapper.GetUserByIDFromSuperAdmin)
+	router.PUT(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid", wrapper.UpdateUserFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/deletion", wrapper.ScheduleMemberAccountDeletionFromSuperAdmin)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/export", wrapper.ExportMemberDataFromSuperAdmin)
+	router.DELETE(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/hard-delete", wrapper.HardDeleteUserFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/leave", wrapper.LeaveTenantForMemberFromSuperAdmin)
+	router.GET(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/leave-preview", wrapper.GetMemberLeavePreviewFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/membership", wrapper.AddUserMembershipFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/password-reset-request", wrapper.ResetPasswordRequestBySuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/reactivate", wrapper.ReactivateUserFromSuperAdmin)
+	router.DELETE(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/remove-from-tenant", wrapper.RemoveUserFromTenantFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/roles/:role/assign", wrapper.AssignRoleFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/roles/:role/unassign", wrapper.UnassignRoleFromSuperAdmin)
+	router.POST(options.BaseURL+"/superadmin-api/v1/tenants/:tenantid/users/:userid/status", wrapper.UpdateUserStatusFromSuperAdmin)
+}

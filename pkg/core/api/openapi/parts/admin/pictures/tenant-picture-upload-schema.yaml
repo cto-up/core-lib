@@ -1,0 +1,7 @@
+type: object
+description: Multipart form carrying one WebP picture of at most 5 MB.
+properties:
+  picture:
+    type: string
+    format: binary
+    description: The WebP bytes; the file name is ignored.

@@ -1,0 +1,17 @@
+get:
+  operationId: getTenantBackground
+  description: Serves the desktop background of the tenant named by the request host, with an ETag for revalidation.
+  parameters:
+    - in: header
+      name: If-None-Match
+      required: false
+      description: ETag from an earlier response
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPicture"
+    "304":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPictureNotModified"
+    "404":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPictureNotFound"

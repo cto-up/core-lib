@@ -159,6 +159,19 @@ paths:
   # admin
   /api/v1/tenant/profile:
     $ref: "./parts/admin/tenant-profile-path.yaml"
+  # tenant pictures: an admin uploads WebP, anyone on the tenant's host reads it
+  /api/v1/tenant/pictures/logo:
+    $ref: "./parts/admin/pictures/tenant-logo-upload-path.yaml"
+  /public-api/v1/tenant/pictures/logo:
+    $ref: "./parts/admin/pictures/tenant-logo-public-path.yaml"
+  /api/v1/tenant/pictures/background:
+    $ref: "./parts/admin/pictures/tenant-background-upload-path.yaml"
+  /public-api/v1/tenant/pictures/background:
+    $ref: "./parts/admin/pictures/tenant-background-public-path.yaml"
+  /api/v1/tenant/pictures/background-mobile:
+    $ref: "./parts/admin/pictures/tenant-background-mobile-upload-path.yaml"
+  /public-api/v1/tenant/pictures/background-mobile:
+    $ref: "./parts/admin/pictures/tenant-background-mobile-public-path.yaml"
   /api/v1/reseller/tenants:
     $ref: "./parts/admin/reseller-tenants-path.yaml"
   /superadmin-api/v1/tenants:

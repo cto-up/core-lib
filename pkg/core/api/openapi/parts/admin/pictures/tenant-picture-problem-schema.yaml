@@ -1,0 +1,7 @@
+type: object
+description: Why a tenant picture request was refused.
+required:
+  - message
+properties:
+  message:
+    type: string

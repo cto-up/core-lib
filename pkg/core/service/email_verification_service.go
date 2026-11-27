@@ -12,7 +12,6 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/auth"
 	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/cto-up/core-lib/pkg/shared/util"
-	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -91,6 +90,11 @@ func (s *EmailVerificationService) CreateEmailVerificationToken(ctx *gin.Context
 // VerifyEmailToken verifies a token and marks the user's email as verified in Auth provider
 func (s *EmailVerificationService) VerifyEmailToken(ctx *gin.Context, token string, tenantID string) error {
 	logger := util.GetLoggerFromCtx(ctx)
+	subdomain, err := util.GetSubdomain(ctx)
+	if err != nil {
+		logger.Err(err).Msg("Failed to get subdomain")
+		return fmt.Errorf("failed to get subdomain: %w", err)
+	}
 	// Get token from database
 	tokenRecord, err := s.store.GetEmailVerificationToken(ctx, repository.GetEmailVerificationTokenParams{
 		Token:    token,
@@ -100,13 +104,6 @@ func (s *EmailVerificationService) VerifyEmailToken(ctx *gin.Context, token stri
 		logger.Err(err).Msg("Failed to get verification token")
 		return fmt.Errorf("invalid or expired verification token")
 	}
-
-	subdomain, err := utils.GetSubdomain(ctx)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		return fmt.Errorf("failed to get subdomain: %w", err)
-	}
-
 	// Get auth client for the tenant
 	authClient, err := s.authProvider.GetAuthClientForSubdomain(ctx, subdomain)
 	if err != nil {

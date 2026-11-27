@@ -8,14 +8,12 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/mailer"
 	"github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
-
-	utils "github.com/cto-up/core-lib/pkg/shared/util"
 )
 
 // buildTenantURL constructs a URL for a specific tenant subdomain with proper port handling
 // If subdomain is empty, uses the current subdomain from the request
 func buildTenantURL(c *gin.Context, path string, subdomain string) (string, error) {
-	host, err := utils.GetHost(c)
+	host, err := util.GetHost(c)
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +25,7 @@ func buildTenantURL(c *gin.Context, path string, subdomain string) (string, erro
 	}
 
 	// Get base domain with port
-	domain, err := utils.GetBaseDomainWithPort(c)
+	domain, err := util.GetBaseDomainWithPort(c)
 	if err != nil {
 		return "", err
 	}
@@ -157,7 +155,7 @@ func sendWelcomeEmail(c *gin.Context, baseAuthClient auth.AuthClient, url, toEma
 
 func getConfirmationEmailURL(c *gin.Context) (string, error) {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	domainInfo, err := utils.GetDomainInfo(c)
+	domainInfo, err := util.GetDomainInfo(c)
 	if err != nil {
 		logger.Err(err).Msg("Failed to get domain info for confirmation email URL")
 		return "", err

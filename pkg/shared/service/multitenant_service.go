@@ -1,8 +1,7 @@
 package service
 
-import "context"
-
 import (
+	"context"
 	"sync"
 
 	"github.com/cto-up/core-lib/pkg/core/db"
@@ -101,23 +100,16 @@ func (uh *MultitenantService) GetTenantIDWithSubdomain(ctx context.Context, subd
 	tenantID, exists := tenantMap.data[subdomain]
 	tenantMap.RUnlock()
 
-	// If the subdomain is not found in the map, return an error
-	if !exists {
-		tenant, err := uh.store.GetTenantBySubdomain(ctx, subdomain)
-		if err != nil {
-			return "", err
-		}
-
-		tenantID = tenant.TenantID
-		tenantMap.Lock()
-		tenantMap.data[tenant.Subdomain] = tenantID
-		tenantMap.Unlock()
-		// Warm the tenant-record cache too — the caller almost always wants the
-		// full tenant next (tenant_middleware, auth flow), and skipping this
-		// would cost a redundant DB round-trip.
-		getTenantCache().put(tenant)
+	if exists {
+		return tenantID, nil
 	}
-	return tenantID, nil
+	// A cold subdomain loads its tenant once and warms the tenant-record cache
+	// as well: the caller almost always wants the full tenant next.
+	tenant, err := uh.GetTenantBySubdomainCached(ctx, subdomain)
+	if err != nil {
+		return "", err
+	}
+	return tenant.TenantID, nil
 }
 
 // GetTenantAllowSignUp returns the tenant's AllowSignUp flag.

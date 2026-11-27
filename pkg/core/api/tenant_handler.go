@@ -14,7 +14,6 @@ import (
 	"github.com/cto-up/core-lib/pkg/shared/repository/subentity"
 	"github.com/cto-up/core-lib/pkg/shared/service"
 	"github.com/cto-up/core-lib/pkg/shared/util"
-	utils "github.com/cto-up/core-lib/pkg/shared/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -32,14 +31,13 @@ type TenantHandler struct {
 // (GET /public-api/v1/tenant)
 func (exh *TenantHandler) GetPublicTenant(c *gin.Context) {
 	logger := util.GetLoggerFromCtx(c.Request.Context())
-	subdomain, err := utils.GetSubdomain(c)
+	subdomain, err := util.GetSubdomain(c)
 	if err != nil {
 		logger.Err(err).Msg("Error getting subdomain")
 		c.JSON(http.StatusInternalServerError, helpers.ErrorResponse(err))
 		return
 	}
-
-	if utils.IsAdminSubdomain(subdomain) {
+	if util.IsAdminSubdomain(subdomain) {
 		c.JSON(http.StatusOK, repository.CoreTenant{
 			Subdomain: "www",
 			Name:      "Administration",

@@ -209,10 +209,8 @@ func (o *userOps) deleteUserGlobally(c *gin.Context, userID string) {
 		return
 	}
 
-	subdomain, err := util.GetSubdomain(c)
-	if err != nil {
-		logger.Err(err).Msg("Failed to get subdomain")
-		c.JSON(http.StatusBadRequest, helpers.ErrorResponse(err))
+	subdomain, ok := requestSubdomain(c)
+	if !ok {
 		return
 	}
 	client, err := o.authProvider.GetAuthClientForSubdomain(c, subdomain)

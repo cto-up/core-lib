@@ -1,0 +1,18 @@
+post:
+  operationId: uploadTenantBackground
+  description: Replaces the tenant desktop background. The bytes must be WebP (RIFF....WEBP header) and at most 5 MB.
+  requestBody:
+    required: true
+    content:
+      multipart/form-data:
+        schema:
+          $ref: "../../../core-schema.yaml#/components/schemas/TenantPictureUpload"
+  responses:
+    "204":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPictureStored"
+    "400":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPictureRejected"
+    "403":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPictureForbidden"
+    "413":
+      $ref: "../../../core-schema.yaml#/components/responses/TenantPictureTooLarge"
